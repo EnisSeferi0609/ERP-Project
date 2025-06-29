@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Kundenformular{% endblock %}
+
+{% block content %}
+
+<h2>Kundenformular</h2>
+
+<form method="post" action="/kunden" id="kundenFormular">
+    <fieldset>
+        <legend>Allgemein</legend>
+
+        <label for="bestehend">Bestehenden Kunden aktualisieren oder neuen Kunden anlegen?</label>
+        <select id="bestehend" name="bestehend" onchange="handleBestehend()">
+            <option value="">Bitte auswählen</option>
+            <option value="ja">Bestehenden Kunden aktualisieren</option>
+            <option value="nein">Neuen Kunden anlegen</option>
+        </select>
+
+        <div id="bestehendeKundenBox" class="hidden">
+            <label for="kunde_id">Kunden auswählen:</label>
+            <select name="kunde_id" id="kunde_id" onchange="handleKundenAuswahl(this)">
+                <option value="">Bitte wählen</option>
+                {% for k in kunden %}
+                    <option value="{{ k.id }}">
+                        {% if k.kundenart == "Privatkunde" %}
+                            {{ k.kunde_nachname }} {{ k.kunde_vorname }}
+                        {% else %}
+                            {{ k.ansprechpartner_nachname }} {{ k.ansprechpartner_vorname }}
+                        {% endif %}
+                        – {{ k.kundenart }} – {{ k.kunde_email }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div id="kundenartBox" class="hidden">
+            <label for="kundenart">Kundenart:</label>
+            <select name="kundenart" id="kundenart" onchange="toggleFields()">
+                <option value="">Bitte wählen</option>
+                <option value="Privatkunde">Privatkunde</option>
+                <option value="Gewerbekunde">Gewerbekunde</option>
+            </select>
+        </div>
+    </fieldset>
+
+    <fieldset id="gewerbefelder" class="hidden">
+        <legend>Gewerbekunde</legend>
+        <label for="kunde_firmenname">Firmenname:</label>
+        <input type="text" name="kunde_firmenname" id="kunde_firmenname">
+
+        <label for="kunde_gesellschaftsform">Gesellschaftsform:</label>
+        <input type="text" name="kunde_gesellschaftsform" id="kunde_gesellschaftsform">
+
+        <label for="ansprechpartner_vorname">Ansprechpartner Vorname:</label>
+        <input type="text" name="ansprechpartner_vorname" id="ansprechpartner_vorname">
+
+        <label for="ansprechpartner_nachname">Ansprechpartner Nachname:</label>
+        <input type="text" name="ansprechpartner_nachname" id="ansprechpartner_nachname">
+    </fieldset>
+
+    <fieldset id="privatfelder" class="hidden">
+        <legend>Privatkunde</legend>
+        <label for="kunde_vorname">Vorname:</label>
+        <input type="text" name="kunde_vorname" id="kunde_vorname">
+
+        <label for="kunde_nachname">Nachname:</label>
+        <input type="text" name="kunde_nachname" id="kunde_nachname">
+    </fieldset>
+
+    <fieldset id="gemeinsameFelder" class="hidden">
+        <legend>Kontaktdaten & Adresse</legend>
+
+        <label for="kunde_rechnungsadresse">Rechnungsadresse:</label>
+        <input type="text" name="kunde_rechnungsadresse" id="kunde_rechnungsadresse">
+
+        <label for="kunde_rechnung_plz">Rechnung PLZ:</label>
+        <input type="text" name="kunde_rechnung_plz" id="kunde_rechnung_plz">
+
+        <label for="kunde_rechnung_ort">Rechnung Ort:</label>
+        <input type="text" name="kunde_rechnung_ort" id="kunde_rechnung_ort">
+
+        <label for="kunde_email">E-Mail:</label>
+        <input type="email" name="kunde_email" id="kunde_email">
+
+        <label for="kunde_telefon">Telefon:</label>
+        <input type="text" name="kunde_telefon" id="kunde_telefon">
+
+        <label for="notizen">Notizen:</label>
+        <textarea name="notizen" id="notizen"></textarea>
+    </fieldset>
+
+    <button type="submit">Speichern</button>
+</form>
+
+<script>
+    function handleBestehend() {
+        const form = document.getElementById("kundenFormular");
+        const bestehend = document.getElementById("bestehend").value;
+        const bestehendeKundenBox = document.getElementById("bestehendeKundenBox");
+        const kundenartBox = document.getElementById("kundenartBox");
+
+        form.reset();
+        document.getElementById("bestehend").value = bestehend;
+
+        if (bestehend === "ja") {
+            bestehendeKundenBox.classList.remove("hidden");
+            kundenartBox.classList.add("hidden");
+        } else if (bestehend === "nein") {
+            bestehendeKundenBox.classList.add("hidden");
+            kundenartBox.classList.remove("hidden");
+        } else {
+            bestehendeKundenBox.classList.add("hidden");
+            kundenartBox.classList.add("hidden");
+        }
+
+        hideAllKundeFelder();
+    }
+
+    function toggleFields() {
+        const art = document.getElementById("kundenart").value;
+        const gewerbe = document.getElementById("gewerbefelder");
+        const privat = document.getElementById("privatfelder");
+        const gemeinsame = document.getElementById("gemeinsameFelder");
+
+        if (art === "Gewerbekunde") {
+            gewerbe.classList.remove("hidden");
+            privat.classList.add("hidden");
+            gemeinsame.classList.remove("hidden");
+        } else if (art === "Privatkunde") {
+            privat.classList.remove("hidden");
+            gewerbe.classList.add("hidden");
+            gemeinsame.classList.remove("hidden");
+        } else {
+            hideAllKundeFelder();
+        }
+    }
+
+    function hideAllKundeFelder() {
+        document.getElementById("gewerbefelder").classList.add("hidden");
+        document.getElementById("privatfelder").classList.add("hidden");
+        document.getElementById("gemeinsameFelder").classList.add("hidden");
+    }
+
+    function handleKundenAuswahl(select) {
+        const kundeId = select.value;
+        if (!kundeId) return;
+
+        fetch(`/api/kunde/${kundeId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (!data) return;
+
+                document.getElementById("kundenart").value = data.kundenart || "";
+                toggleFields();
+
+                const feldMap = {
+                    "kunde_firmenname": data.kunde_firmenname,
+                    "kunde_gesellschaftsform": data.kunde_gesellschaftsform,
+                    "ansprechpartner_vorname": data.ansprechpartner_vorname,
+                    "ansprechpartner_nachname": data.ansprechpartner_nachname,
+                    "kunde_vorname": data.kunde_vorname,
+                    "kunde_nachname": data.kunde_nachname,
+                    "kunde_rechnungsadresse": data.kunde_rechnungsadresse,
+                    "kunde_rechnung_plz": data.kunde_rechnung_plz,
+                    "kunde_rechnung_ort": data.kunde_rechnung_ort,
+                    "kunde_email": data.kunde_email,
+                    "kunde_telefon": data.kunde_telefon,
+                    "notizen": data.notizen
+                };
+
+                for (const feld in feldMap) {
+                    const el = document.getElementById(feld);
+                    if (el) el.value = feldMap[feld] || '';
+                }
+            });
+    }
+</script>
+
+{% endblock %}
+

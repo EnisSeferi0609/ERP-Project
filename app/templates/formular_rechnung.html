@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Rechnung erstellen{% endblock %}
+
+{% block content %}
+
+<h2>Rechnung erstellen</h2>
+
+<form method="post" action="/rechnungen">
+    <label for="kunde_id">Kunde auswählen:</label>
+    <select name="kunde_id" id="kunde_id" required onchange="filterAuftraege()">
+        <option value="">-- Bitte auswählen --</option>
+        {% for kunde in kunden %}
+        <option value="{{ kunde.id }}">
+            {% if kunde.kundenart == "Privatkunde" %}
+                {{ kunde.kunde_nachname }} {{ kunde.kunde_vorname }}
+            {% else %}
+                {{ kunde.ansprechpartner_nachname }} {{ kunde.ansprechpartner_vorname }}
+            {% endif %}
+            {% if kunde.kunde_firmenname %}
+                – {{ kunde.kunde_firmenname }}
+            {% endif %}
+        </option>
+        {% endfor %}
+    </select>
+
+    <label for="auftrag_id">Auftrag auswählen:</label>
+    <select name="auftrag_id" id="auftrag_id" required>
+        <option value="">-- Bitte zuerst Kunden wählen --</option>
+        {% for auftrag in auftraege %}
+            <option value="{{ auftrag.id }}" data-kunde="{{ auftrag.kunde_id }}">
+                Auftrag #{{ auftrag.id }} – {{ auftrag.beschreibung }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <button type="submit">PDF-Rechnung erstellen</button>
+</form>
+
+<script>
+function filterAuftraege() {
+    const kundeSelect = document.getElementById("kunde_id");
+    const auftragSelect = document.getElementById("auftrag_id");
+    const selectedKundeId = kundeSelect.value;
+
+    for (const option of auftragSelect.options) {
+        if (!option.dataset.kunde) continue; // erste Placeholder-Option
+        option.style.display = option.dataset.kunde === selectedKundeId ? "block" : "none";
+    }
+
+    auftragSelect.value = ""; // Reset Auswahl
+}
+</script>
+
+{% endblock %}
+

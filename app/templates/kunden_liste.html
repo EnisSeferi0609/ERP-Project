@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Auftrag anlegen{% endblock %}
+
+{% block content %}
+
+    <h2>Alle Kunden</h2>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Vorname</th>
+            <th>Nachname</th>
+            <th>Email</th>
+            <th>Telefon</th>
+            <th>Kundenart</th>
+            <th>Firma</th>
+            <th>Seit</th>
+            <th>Aktion</th>
+        </tr>
+        {% for kunde in kunden %}
+    <tr>
+        <td>{{ kunde.id }}</td>
+        <td>
+          {% if kunde.kundenart == "Privatkunde" %}
+            {{ kunde.kunde_vorname }}
+          {% else %}
+            {{ kunde.ansprechpartner_vorname }}
+          {% endif %}
+        </td>
+        <td>
+          {% if kunde.kundenart == "Privatkunde" %}
+            {{ kunde.kunde_nachname }}
+          {% else %}
+            {{ kunde.ansprechpartner_nachname }}
+          {% endif %}
+        </td>
+        <td>{{ kunde.kunde_email }}</td>
+        <td>{{ kunde.kunde_telefon }}</td>
+        <td>{{ kunde.kundenart }}</td>
+        <td>{{ kunde.kunde_firmenname or "-" }}</td>
+        <td>{{ kunde.kunde_seit }}</td>
+        <td>
+            <form action="/kunde/loeschen/{{ kunde.id }}" method="post" onsubmit="return confirm('Diesen Kunden und alle Aufträge wirklich löschen?');">
+                <button type="submit" class="delete-button">Kunde löschen</button>
+            </form>
+        </td>
+    </tr>
+    
+    {% for auftrag in kunde.auftraege %}
+    <tr class="auftrag-zeile">
+        <td colspan="8" style="padding-left: 2rem; color: #555;">
+            📦 Auftrag #{{ auftrag.id }} – {{ auftrag.beschreibung or "keine Beschreibung" }}
+            (Start: {{ auftrag.auftrag_start or "-" }}, Status: {{ auftrag.status or "-" }})
+        </td>
+        <td>
+            <form action="/auftrag/loeschen/{{ auftrag.id }}" method="post" onsubmit="return confirm('Diesen Auftrag wirklich löschen?');">
+                <button type="submit" class="delete-button">Auftrag löschen</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+{% endfor %}
+
+    </table>
+
+    <a href="/" class="back-link">← Zurück</a>
+
+{% endblock %}
+

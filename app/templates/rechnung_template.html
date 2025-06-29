@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      font-family: Georgia, 'Times New Roman', serif;
+    }
+
+
+    header {
+      position: relative; /* wichtig für absolute Position des Logos */
+      margin-bottom: 50px;
+      border-bottom: 2px solid #1a2b45;
+      padding-bottom: 20px;
+    }
+
+    .logo-container {
+      position: absolute;
+      top: 0;
+      right: 0;
+    }
+
+    .logo {
+      width: 150px;
+    }
+
+    .info-bereich {
+      display: flex;
+      flex-direction: row;
+      gap: 20px;
+    }
+
+    .absender, .empfaenger {
+      width: 48%;
+      line-height: 1.5;
+    }
+
+    h1 {
+      font-size: 22pt;
+      color: #1a2b45;
+      margin-bottom: 10px;
+      border-left: 6px solid #1a2b45;
+      padding-left: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 30px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+
+    th, td {
+      padding: 12px 15px;
+      border: 1px solid #e0e0e0;
+    }
+
+    th {
+      background-color: #ecf0f1;
+      text-align: left;
+      font-weight: 600;
+      color: #34495e;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    .gesamt {
+      margin-top: 30px;
+      font-weight: bold;
+      font-size: 12pt;
+      text-align: right;
+      color: #2c3e50;
+    }
+
+    .footer {
+      margin-top: 60px;
+      font-size: 10pt;
+      color: #7f8c8d;
+      border-top: 1px solid #bdc3c7;
+      padding-top: 15px;
+      line-height: 1.6;
+    }
+.absender strong {
+  font-weight: 700;
+}
+
+  </style>
+</head>
+<body>
+
+<header>
+  <!-- Das Logo rechts oben -->
+  <div class="logo-container">
+    <img src="data:image/png;base64,{{ logo_base64 }}" alt="Logo Bodenleger" class="logo">
+  </div>
+
+  <!-- Die Absender- und Empfängerinfos -->
+  <div class="info-bereich">
+    <div class="absender">
+      <strong>{{ unternehmensdaten.unternehmen_name }}</strong><br>
+      {{ unternehmensdaten.unternehmen_adresse }}<br>
+      {{ unternehmensdaten.unternehmen_plz }} {{ unternehmensdaten.unternehmen_ort }}<br>
+      {{ unternehmensdaten.unternehmen_telefon }}<br>
+      Steuernummer: {{ unternehmensdaten.unternehmen_steuernummer }}
+    </div>
+    </br>
+    <div class="empfaenger">
+      {% if kunde.kundenart == "Privatkunde" %}
+        <strong>{{ kunde.kunde_vorname }} {{ kunde.kunde_nachname }}</strong><br>
+      {% elif kunde.kundenart == "Gewerbekunde" %}
+        <strong>{{ kunde.kunde_firmenname }}</strong><br>
+      {% endif %}
+      {{ kunde.kunde_rechnungsadresse }}<br>
+      {{ kunde.kunde_rechnung_plz }} {{ kunde.kunde_rechnung_ort }}
+    </div>
+  </div>
+</header>
+
+<h1>Rechnung</h1>
+<p><strong>Rechnungsdatum:</strong> {{ rechnung.rechnungsdatum.strftime("%d.%m.%Y") }}<br>
+<strong>Auftrag:</strong> {{ auftrag.beschreibung }}</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Datum</th>
+      <th>Tätigkeit</th>
+      <th>Stunden</th>
+      <th>Stundenlohn (€)</th>
+      <th>Gesamt (€)</th>
+    </tr>
+  </thead>
+ <tbody>
+  {% for k in komponenten %}
+  <tr>
+    <td>
+      {% if k.komponente_start and k.komponente_ende %}
+        {{ k.komponente_start.strftime("%d.%m.%Y") }} – {{ k.komponente_ende.strftime("%d.%m.%Y") }}
+      {% elif k.komponente_start %}
+        {{ k.komponente_start.strftime("%d.%m.%Y") }}
+      {% elif k.komponente_ende %}
+        {{ k.komponente_ende.strftime("%d.%m.%Y") }}
+      {% else %}
+        -
+      {% endif %}
+    </td>
+    <td>{{ k.arbeit }}</td>
+    <td>{{ k.anzahl_stunden }}</td>
+    <td>{{ "%.2f"|format(k.stundenlohn or 0) }}</td>
+    <td>{{ "%.2f"|format((k.anzahl_stunden or 0) * (k.stundenlohn or 0)) }}</td>
+  </tr>
+  {% endfor %}
+</tbody>
+
+</table>
+
+<p class="gesamt">
+  Gesamtbetrag: <strong>{{ "%.2f"|format(rechnung.rechnungssumme_gesamt) }} €</strong>
+</p>
+
+<div class="footer">
+  <p>{{ rechnung.rechtlicher_hinweis }}</p>
+  <p>
+    Zahlung an: {{ unternehmensdaten.zahlungsinfo_name }}<br>
+    Bank: {{ unternehmensdaten.zahlungsinfo_bank_name }}<br>
+    IBAN: {{ unternehmensdaten.zahlungsinfo_iban }}<br>
+    PayPal: {{ unternehmensdaten.zahlungsinfo_paypal }}
+  </p>
+</div>
+
+</body>
+</html>

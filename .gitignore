@@ -1,0 +1,27 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Datenbankdateien
+*.db
+database/*.db
+
+# Lokale Umgebungen
+.env
+*.env
+env/
+venv/
+.venv/
+
+# Spyder-Projektdateien
+.spyproject/
+
+# VSCode-Einstellungen
+.vscode/
+
+# macOS-Systemdateien
+.DS_Store
+
+# Logdateien
+*.log

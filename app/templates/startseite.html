@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<h2>Dashboard</h2>
+
+<div style="width: 100%; max-width: 800px; margin-bottom: 3rem;">
+  <canvas id="umsatzChart"></canvas>
+</div>
+
+<div style="width: 100%; max-width: 800px;">
+  <canvas id="stundenChart"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const daten = {{ daten | tojson }};
+  console.log(daten);
+
+  function filterKategorie(alle, kategorie) {
+    return alle
+      .filter(e => e.kategorie === kategorie)
+      .sort((a, b) => new Date(a.datum) - new Date(b.datum));
+  }
+
+  function buildDataset(eintraege, label, farbe) {
+    return {
+      labels: eintraege.map(e => e.datum),
+      datasets: [{
+        label: label,
+        data: eintraege.map(e => e.wert),
+        borderColor: farbe,
+        backgroundColor: farbe,
+        fill: false,
+        tension: 0.3
+      }]
+    };
+  }
+
+  const umsatz = filterKategorie(daten, "Umsatz");
+  const stunden = filterKategorie(daten, "Arbeitsstunden");
+
+  new Chart(document.getElementById("umsatzChart"), {
+    type: "line",
+    data: buildDataset(umsatz, "Umsatz (EUR)", "#3b82f6")
+  });
+
+  new Chart(document.getElementById("stundenChart"), {
+    type: "bar",
+    data: buildDataset(stunden, "Arbeitsstunden", "#10b981")
+  });
+</script>
+{% endblock %}
