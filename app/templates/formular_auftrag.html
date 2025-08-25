@@ -1,136 +1,108 @@
 {% extends "base.html" %}
-
 {% block title %}Auftrag anlegen{% endblock %}
 
 {% block content %}
-
 <h2>Neuen Auftrag anlegen</h2>
 
 <form action="/auftraege" method="post">
-    <label for="kunde">Kunde auswählen:</label>
-    <select name="kunde_id" id="kunde" required>
-        {% for kunde in kunden %}
-            <option value="{{ kunde.id }}">
-                {% if kunde.kundenart == "Privatkunde" %}
-                    {{ kunde.kunde_nachname }} {{ kunde.kunde_vorname }}
-                {% else %}
-                    {{ kunde.ansprechpartner_nachname }} {{ kunde.ansprechpartner_vorname }}
-                {% endif %}
-                {% if kunde.kunde_firmenname %}
-                    – {{ kunde.kunde_firmenname }}
-                {% endif %}
-            </option>
-        {% endfor %}
-    </select>
+  <label for="kunde">Kunde auswählen:</label>
+  <select name="kunde_id" id="kunde" required>
+    {% for kunde in kunden %}
+      <option value="{{ kunde.id }}">
+        {% if kunde.kundenart == "Privatkunde" %}
+          {{ kunde.kunde_nachname }} {{ kunde.kunde_vorname }}
+        {% else %}
+          {{ kunde.ansprechpartner_nachname }} {{ kunde.ansprechpartner_vorname }}
+        {% endif %}
+        {% if kunde.kunde_firmenname %} – {{ kunde.kunde_firmenname }}{% endif %}
+      </option>
+    {% endfor %}
+  </select>
 
-    <label for="beschreibung">Auftragsbeschreibung:</label>
-    <input type="text" name="auftragsbeschreibung" id="beschreibung" required>
-    
-     <fieldset>
-        <legend>Leistungsadresse</legend>
+  <label for="beschreibung">Auftragsbeschreibung:</label>
+  <input type="text" name="auftragsbeschreibung" id="beschreibung" required>
 
-        <label for="kunde_leistungsadresse">Adresse:</label>
-        <input type="text" name="kunde_leistungsadresse" id="kunde_leistungsadresse" required>
-        
-        <label for="kunde_leistung_plz">PLZ:</label>
-        <input type="text" name="kunde_leistung_plz" id="kunde_leistung_plz" required>
-        
-        <label for="kunde_leistung_ort">Ort:</label>
-        <input type="text" name="kunde_leistung_ort" id="kunde_leistung_ort" required>
+  <fieldset>
+    <legend>Leistungsadresse</legend>
+    <label for="kunde_leistungsadresse">Adresse:</label>
+    <input type="text" name="kunde_leistungsadresse" id="kunde_leistungsadresse" required>
+    <label for="kunde_leistung_plz">PLZ:</label>
+    <input type="text" name="kunde_leistung_plz" id="kunde_leistung_plz" required>
+    <label for="kunde_leistung_ort">Ort:</label>
+    <input type="text" name="kunde_leistung_ort" id="kunde_leistung_ort" required>
+    <button type="button" onclick="adresseVonKundeLaden()" style="margin: .5rem 0; display:block;">
+      Rechnungsadresse übernehmen
+    </button>
+  </fieldset>
 
-        
-        <button type="button" onclick="adresseVonKundeLaden()" style="margin: 0.5rem 0; display: block;">
-            Rechnungsadresse übernehmen
-        </button>
-    </fieldset>
-
-    <div id="komponenten-container">
-        <div class="arbeit-komponente">
-            <h4>Arbeitseinheit</h4>
-
-            <label>Startdatum:</label>
-            <input type="date" name="komponente_start" required>
-
-            <label>Enddatum:</label>
-            <input type="date" name="komponente_ende" required>
-
-            <label>Tätigkeit:</label>
-            <input type="text" name="arbeit" required>
-
-            <label>Stunden:</label>
-            <input type="number" name="anzahl_stunden" step="0.1" required>
-
-            <label>Stundenlohn (€):</label>
-            <input type="number" name="stundenlohn" step="0.01" required>
-
-            <label>Beschreibung:</label>
-            <textarea name="beschreibung_liste"></textarea>
-
-            <button type="button" class="remove-btn" onclick="this.parentElement.remove()">Entfernen</button>
-        </div>
+  <!-- Arbeitseinheiten -->
+  <div id="komponenten-container">
+    <div class="arbeit-komponente">
+      <h4>Arbeitseinheit</h4>
+      <label>Startdatum:</label>
+      <input type="date" name="komponente_start[]" required>
+      <label>Enddatum:</label>
+      <input type="date" name="komponente_ende[]" required>
+      <label>Tätigkeit:</label>
+      <input type="text" name="arbeit[]" required>
+      <label>Stunden:</label>
+      <input type="number" name="anzahl_stunden[]" step="0.1" required>
+      <label>Stundenlohn (€):</label>
+      <input type="number" name="stundenlohn[]" step="0.01" required>
+      <label>Beschreibung:</label>
+      <textarea name="beschreibung_liste[]"></textarea>
+      <button type="button" class="remove-btn" onclick="this.parentElement.remove()">Entfernen</button>
     </div>
+  </div>
+  <button type="button" onclick="addKomponente()">+ Arbeitseinheit hinzufügen</button>
 
-    <button type="button" onclick="addKomponente()">+ Arbeitseinheit hinzufügen</button>
-    <button type="submit">Auftrag speichern</button>
+  <hr>
+
+  <!-- Material-Komponenten -->
+  <div id="material-container">
+    <div class="material-komponente">
+      <h4>Material-Komponente</h4>
+      <label>Bezeichnung:</label>
+      <input type="text" name="material_bezeichnung[]" required>
+      <label>Berechnungseinheit:</label>
+      <input type="text" name="material_berechnungseinheit[]">
+      <label>Preis pro Einheit (€):</label>
+      <input type="number" step="0.01" name="material_preis_pro_einheit[]" required>
+      <button type="button" class="remove-btn" onclick="this.parentElement.remove()">Entfernen</button>
+    </div>
+  </div>
+  <button type="button" onclick="addMaterial()">+ Material hinzufügen</button>
+
+  <br><br>
+  <button type="submit">Auftrag speichern</button>
 </form>
 
 <script>
 function addKomponente() {
-    const container = document.getElementById("komponenten-container");
-    const html = `
-        <div class="arbeit-komponente">
-            <h4>Arbeitseinheit</h4>
-
-            <label>Startdatum:</label>
-            <input type="date" name="komponente_start" required>
-
-            <label>Enddatum:</label>
-            <input type="date" name="komponente_ende" required>
-
-            <label>Tätigkeit:</label>
-            <input type="text" name="arbeit" required>
-
-            <label>Stunden:</label>
-            <input type="number" name="anzahl_stunden" step="0.1" required>
-
-            <label>Stundenlohn (€):</label>
-            <input type="number" name="stundenlohn" step="0.01" required>
-
-            <label>Beschreibung:</label>
-            <textarea name="beschreibung_liste"></textarea>
-
-            <button type="button" class="remove-btn" onclick="this.parentElement.remove()">Entfernen</button>
-        </div>`;
-    container.insertAdjacentHTML("beforeend", html);
+  const container = document.getElementById("komponenten-container");
+  const original = container.querySelector(".arbeit-komponente");
+  const clone = original.cloneNode(true);
+  clone.querySelectorAll("input, textarea").forEach(el => el.value = "");
+  container.appendChild(clone);
 }
-</script>
-
-<script>
+function addMaterial() {
+  const container = document.getElementById("material-container");
+  const original = container.querySelector(".material-komponente");
+  const clone = original.cloneNode(true);
+  clone.querySelectorAll("input").forEach(el => el.value = "");
+  container.appendChild(clone);
+}
 function adresseVonKundeLaden() {
-    const kundeId = document.getElementById("kunde").value;
-    if (!kundeId) {
-        alert("Bitte zuerst einen Kunden auswählen.");
-        return;
-    }
-
-    fetch(`/api/kunde/${kundeId}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error("Fehler beim Laden der Kundendaten");
-            }
-            return response.json();
-        })
-        .then(data => {
-            document.getElementById("kunde_leistungsadresse").value = data.kunde_rechnungsadresse || '';
-            document.getElementById("kunde_leistung_plz").value = data.kunde_rechnung_plz || '';
-            document.getElementById("kunde_leistung_ort").value = data.kunde_rechnung_ort || '';
-
-        })
-        .catch(error => {
-            console.error(error);
-            alert("Kundendaten konnten nicht geladen werden.");
-        });
+  const kundeId = document.getElementById("kunde").value;
+  if (!kundeId) { alert("Bitte zuerst einen Kunden auswählen."); return; }
+  fetch(`/api/kunde/${kundeId}`)
+    .then(r => { if (!r.ok) throw new Error("Fehler beim Laden"); return r.json(); })
+    .then(d => {
+      document.getElementById("kunde_leistungsadresse").value = d.kunde_rechnungsadresse || '';
+      document.getElementById("kunde_leistung_plz").value = d.kunde_rechnung_plz || '';
+      document.getElementById("kunde_leistung_ort").value = d.kunde_rechnung_ort || '';
+    })
+    .catch(() => alert("Kundendaten konnten nicht geladen werden."));
 }
 </script>
-
 {% endblock %}

@@ -6,36 +6,29 @@
     body {
       font-family: Georgia, 'Times New Roman', serif;
     }
-
-
     header {
-      position: relative; /* wichtig für absolute Position des Logos */
+      position: relative;
       margin-bottom: 50px;
       border-bottom: 2px solid #1a2b45;
       padding-bottom: 20px;
     }
-
     .logo-container {
       position: absolute;
       top: 0;
       right: 0;
     }
-
     .logo {
       width: 150px;
     }
-
     .info-bereich {
       display: flex;
       flex-direction: row;
       gap: 20px;
     }
-
     .absender, .empfaenger {
       width: 48%;
       line-height: 1.5;
     }
-
     h1 {
       font-size: 22pt;
       color: #1a2b45;
@@ -43,30 +36,33 @@
       border-left: 6px solid #1a2b45;
       padding-left: 10px;
     }
-
+    h3 {
+      font-size: 14pt; /* kleiner als h2 */
+      color: #1a2b45;
+      margin-top: 30px;
+      margin-bottom: 10px;
+      border-left: 4px solid #1a2b45;
+      padding-left: 8px;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 30px;
+      margin-top: 10px;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
     }
-
     th, td {
       padding: 12px 15px;
       border: 1px solid #e0e0e0;
     }
-
     th {
       background-color: #ecf0f1;
       text-align: left;
       font-weight: 600;
       color: #34495e;
     }
-
     tr:nth-child(even) {
       background-color: #f9f9f9;
     }
-
     .gesamt {
       margin-top: 30px;
       font-weight: bold;
@@ -74,7 +70,6 @@
       text-align: right;
       color: #2c3e50;
     }
-
     .footer {
       margin-top: 60px;
       font-size: 10pt;
@@ -83,21 +78,18 @@
       padding-top: 15px;
       line-height: 1.6;
     }
-.absender strong {
-  font-weight: 700;
-}
-
+    .absender strong {
+      font-weight: 700;
+    }
   </style>
 </head>
 <body>
 
 <header>
-  <!-- Das Logo rechts oben -->
   <div class="logo-container">
     <img src="data:image/png;base64,{{ logo_base64 }}" alt="Logo Bodenleger" class="logo">
   </div>
 
-  <!-- Die Absender- und Empfängerinfos -->
   <div class="info-bereich">
     <div class="absender">
       <strong>{{ unternehmensdaten.unternehmen_name }}</strong><br>
@@ -106,7 +98,7 @@
       {{ unternehmensdaten.unternehmen_telefon }}<br>
       Steuernummer: {{ unternehmensdaten.unternehmen_steuernummer }}
     </div>
-    </br>
+    <br>
     <div class="empfaenger">
       {% if kunde.kundenart == "Privatkunde" %}
         <strong>{{ kunde.kunde_vorname }} {{ kunde.kunde_nachname }}</strong><br>
@@ -123,6 +115,7 @@
 <p><strong>Rechnungsdatum:</strong> {{ rechnung.rechnungsdatum.strftime("%d.%m.%Y") }}<br>
 <strong>Auftrag:</strong> {{ auftrag.beschreibung }}</p>
 
+<h3>Arbeit</h3>
 <table>
   <thead>
     <tr>
@@ -133,28 +126,49 @@
       <th>Gesamt (€)</th>
     </tr>
   </thead>
- <tbody>
-  {% for k in komponenten %}
-  <tr>
-    <td>
-      {% if k.komponente_start and k.komponente_ende %}
-        {{ k.komponente_start.strftime("%d.%m.%Y") }} – {{ k.komponente_ende.strftime("%d.%m.%Y") }}
-      {% elif k.komponente_start %}
-        {{ k.komponente_start.strftime("%d.%m.%Y") }}
-      {% elif k.komponente_ende %}
-        {{ k.komponente_ende.strftime("%d.%m.%Y") }}
-      {% else %}
-        -
-      {% endif %}
-    </td>
-    <td>{{ k.arbeit }}</td>
-    <td>{{ k.anzahl_stunden }}</td>
-    <td>{{ "%.2f"|format(k.stundenlohn or 0) }}</td>
-    <td>{{ "%.2f"|format((k.anzahl_stunden or 0) * (k.stundenlohn or 0)) }}</td>
-  </tr>
-  {% endfor %}
-</tbody>
+  <tbody>
+    {% for k in komponenten %}
+    <tr>
+      <td>
+        {% if k.komponente_start and k.komponente_ende %}
+          {{ k.komponente_start.strftime("%d.%m.%Y") }} – {{ k.komponente_ende.strftime("%d.%m.%Y") }}
+        {% elif k.komponente_start %}
+          {{ k.komponente_start.strftime("%d.%m.%Y") }}
+        {% elif k.komponente_ende %}
+          {{ k.komponente_ende.strftime("%d.%m.%Y") }}
+        {% else %}
+          -
+        {% endif %}
+      </td>
+      <td>{{ k.arbeit }}</td>
+      <td>{{ k.anzahl_stunden }}</td>
+      <td>{{ "%.2f"|format(k.stundenlohn or 0) }}</td>
+      <td>{{ "%.2f"|format((k.anzahl_stunden or 0) * (k.stundenlohn or 0)) }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
 
+<h3>Material / Sonstiges</h3>
+<table>
+  <thead>
+    <tr>
+      <th>Bezeichnung</th>
+      <th>Berechnungseinheit</th>
+      <th>Preis pro Einheit (€)</th>
+      <th>Gesamt (€)</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for m in materialien %}
+    <tr>
+      <td>{{ m.bezeichnung }}</td>
+      <td>{{ m.berechnungseinheit or "-" }}</td>
+      <td>{{ "%.2f"|format(m.preis_pro_einheit or 0) }}</td>
+      <td>{{ "%.2f"|format(m.preis_pro_einheit or 0) }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
 </table>
 
 <p class="gesamt">

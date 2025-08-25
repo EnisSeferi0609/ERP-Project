@@ -17,6 +17,6 @@ class Unternehmensstatistik(Base):
 
     id = Column(Integer, primary_key=True)
     datum = Column(Date, nullable=False)
-    kategorie = Column(Enum(KategorieEnum), nullable=False)  # Enum statt String
+    kategorie = Column(Enum(KategorieEnum), nullable=False)
     wert = Column(Float, nullable=False)
     einheit = Column(String)

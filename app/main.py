@@ -8,14 +8,18 @@ import os
 from sqlalchemy.orm import Session
 from database.db import get_db
 from app.models import Unternehmensstatistik
-
-from app.routes import kunde_route, auftrag_route, rechnung_route, unternehmensdaten_route, startseite_route, auftrag_loeschen
-
-app = FastAPI()
-app.mount("/static", StaticFiles(directory="static"), name="static")
+from app.routes import (
+    kunde_route, auftrag_route, rechnung_route,
+    unternehmensdaten_route, startseite_route,
+    auftrag_loeschen, buchungen
+)
 
 BASE_DIR = Path(__file__).resolve().parent
-templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
+PROJECT_ROOT = BASE_DIR.parent
+
+app = FastAPI()
+app.mount("/static", StaticFiles(directory=str(PROJECT_ROOT / "static")), name="static")
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 @app.get("/", response_class=HTMLResponse)
 def startseite(request: Request, db: Session = Depends(get_db)):
@@ -37,3 +41,8 @@ app.include_router(rechnung_route.router)
 app.include_router(unternehmensdaten_route.router)
 app.include_router(startseite_route.router)
 app.include_router(auftrag_loeschen.router)
+app.include_router(buchungen.router)
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True)

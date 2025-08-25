@@ -1,3 +1,6 @@
+"""Datenmodell für Kunden (Privat- und Geschäftskunden)."""
+
+
 from sqlalchemy import Column, Integer, String, Date, Text
 from sqlalchemy.orm import relationship
 from database.db import Base

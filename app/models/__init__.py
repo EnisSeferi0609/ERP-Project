@@ -11,3 +11,6 @@ from .kunde import Kunde
 from .unternehmensdaten import Unternehmensdaten
 
 from .unternehmensstatistik import Unternehmensstatistik
+
+from .einnahme_ausgabe import EinnahmeAusgabe
+from .eur_kategorie import EurKategorie

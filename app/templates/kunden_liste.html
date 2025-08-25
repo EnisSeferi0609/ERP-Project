@@ -49,7 +49,7 @@
     {% for auftrag in kunde.auftraege %}
     <tr class="auftrag-zeile">
         <td colspan="8" style="padding-left: 2rem; color: #555;">
-            📦 Auftrag #{{ auftrag.id }} – {{ auftrag.beschreibung or "keine Beschreibung" }}
+            Auftrag #{{ auftrag.id }} – {{ auftrag.beschreibung or "keine Beschreibung" }}
             (Start: {{ auftrag.auftrag_start or "-" }}, Status: {{ auftrag.status or "-" }})
         </td>
         <td>
@@ -62,8 +62,6 @@
 {% endfor %}
 
     </table>
-
-    <a href="/" class="back-link">← Zurück</a>
 
 {% endblock %}
 
