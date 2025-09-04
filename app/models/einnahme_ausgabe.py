@@ -13,10 +13,12 @@ class EinnahmeAusgabe(Base):
     beschreibung = Column(String)
     zahlungsart = Column(String)
     belegpfad = Column(String)
-    
-    kategorie_id = Column(Integer, ForeignKey("eur_kategorie.id"), nullable=False)
-    kategorie = relationship("EurKategorie")
 
+    kategorie_id = Column(
+        Integer,
+        ForeignKey("eur_kategorie.id"),
+        nullable=False)
+    kategorie = relationship("EurKategorie", back_populates="einnahmen_ausgaben")
 
     rechnung_id = Column(Integer, ForeignKey("rechnung.id"), nullable=True)
 

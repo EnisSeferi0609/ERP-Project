@@ -15,7 +15,7 @@
             <th>Kundenart</th>
             <th>Firma</th>
             <th>Seit</th>
-            <th>Aktion</th>
+            <th style="width: 120px;">Aktion</th>
         </tr>
         {% for kunde in kunden %}
     <tr>
@@ -41,7 +41,7 @@
         <td>{{ kunde.kunde_seit }}</td>
         <td>
             <form action="/kunde/loeschen/{{ kunde.id }}" method="post" onsubmit="return confirm('Diesen Kunden und alle Aufträge wirklich löschen?');">
-                <button type="submit" class="delete-button">Kunde löschen</button>
+                <button type="submit" class="delete-button" style="font-size: 12px; padding: 4px 8px;">Kunde löschen</button>
             </form>
         </td>
     </tr>
@@ -50,11 +50,11 @@
     <tr class="auftrag-zeile">
         <td colspan="8" style="padding-left: 2rem; color: #555;">
             Auftrag #{{ auftrag.id }} – {{ auftrag.beschreibung or "keine Beschreibung" }}
-            (Start: {{ auftrag.auftrag_start or "-" }}, Status: {{ auftrag.status or "-" }})
+            (Start: {{ auftrag.auftrag_start or "-" }}, Rechnungsstatus: {{ auftrag.invoice_status }})
         </td>
         <td>
             <form action="/auftrag/loeschen/{{ auftrag.id }}" method="post" onsubmit="return confirm('Diesen Auftrag wirklich löschen?');">
-                <button type="submit" class="delete-button">Auftrag löschen</button>
+                <button type="submit" class="delete-button" style="font-size: 12px; padding: 4px 8px;">Auftrag löschen</button>
             </form>
         </td>
     </tr>

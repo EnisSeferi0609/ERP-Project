@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
 from database.db import Base
 
+
 class Unternehmensdaten(Base):
     __tablename__ = "unternehmensdaten"
 

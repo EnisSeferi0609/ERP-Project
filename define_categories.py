@@ -1,6 +1,7 @@
 from app.models.eur_kategorie import EurKategorie
 from database.db import SessionLocal
 
+
 def init_kategorien():
     db = SessionLocal()
 
@@ -26,6 +27,6 @@ def init_kategorien():
     db.close()
     print("Standardkategorien wurden eingefügt.")
 
+
 if __name__ == "__main__":
     init_kategorien()
-

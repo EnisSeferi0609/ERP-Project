@@ -14,44 +14,12 @@ router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
 
-# Übersicht aller Buchungen
-@router.get("/buchungen", response_class=HTMLResponse)
-def buchungen_uebersicht(request: Request, db: Session = Depends(get_db)):
-    eintraege = db.query(EinnahmeAusgabe).order_by(EinnahmeAusgabe.datum.desc()).all()
-
-    einnahmen_summe = sum(e.betrag for e in eintraege if e.typ.lower() == "einnahme")
-    ausgaben_summe = sum(e.betrag for e in eintraege if e.typ.lower() == "ausgabe")
-    saldo = einnahmen_summe - ausgaben_summe
-
-    # Gruppieren nach Jahr-Monat für Diagramm
-    monate = defaultdict(lambda: {"einnahme": 0, "ausgabe": 0})
-    for e in eintraege:
-        key = e.datum.strftime('%Y-%m')
-        if e.typ.lower() == "einnahme":
-            monate[key]["einnahme"] += e.betrag
-        elif e.typ.lower() == "ausgabe":
-            monate[key]["ausgabe"] += e.betrag
-
-    labels = sorted(monate.keys())
-    daten_einnahmen = [monate[m]["einnahme"] for m in labels]
-    daten_ausgaben = [monate[m]["ausgabe"] for m in labels]
-
-    return templates.TemplateResponse("buchungen_uebersicht.html", {
-        "request": request,
-        "eintraege": eintraege,
-        "einnahmen_summe": einnahmen_summe,
-        "ausgaben_summe": ausgaben_summe,
-        "saldo": saldo,
-        "labels": labels,
-        "daten_einnahmen": daten_einnahmen,
-        "daten_ausgaben": daten_ausgaben
-    })
-
 
 # Formular für neue Buchung
 @router.get("/buchungen/neu", response_class=HTMLResponse)
 def formular_anzeigen(request: Request, db: Session = Depends(get_db)):
-    kategorien = db.query(EurKategorie).order_by(EurKategorie.typ, EurKategorie.name).all()
+    kategorien = db.query(EurKategorie).order_by(
+        EurKategorie.typ, EurKategorie.name).all()
     return templates.TemplateResponse("neue_buchung.html", {
         "request": request,
         "kategorien": kategorien
@@ -79,7 +47,7 @@ def formular_absenden(
     )
     db.add(buchung)
     db.commit()
-    return RedirectResponse("/buchungen", status_code=303)
+    return RedirectResponse("/euer", status_code=303)
 
 
 # Rechnung als bezahlt/unbezahlt markieren & Buchung erzeugen
@@ -94,17 +62,19 @@ def rechnung_status_toggle(rechnung_id: int, db: Session = Depends(get_db)):
 
     # Falls bezahlt, automatisch EÜR-Buchung erzeugen
     if rechnung.bezahlt:
-        kategorie = db.query(EurKategorie).filter_by(name="Erlöse", typ="einnahme").first()
+        kategorie = db.query(EurKategorie).filter_by(
+            name="Erlöse", typ="einnahme").first()
         if kategorie:
             buchung = EinnahmeAusgabe(
                 datum=date.today(),
                 betrag=rechnung.betrag,
                 typ="einnahme",
                 kategorie_id=kategorie.id,
-                beschreibung=f"Rechnung {rechnung.id} – {rechnung.beschreibung or ''}",
+                beschreibung=(
+                    f"Rechnung {rechnung.id} – {rechnung.beschreibung or ''}"
+                ),
                 zahlungsart="Überweisung",
-                rechnung_id=rechnung.id
-            )
+                rechnung_id=rechnung.id)
             db.add(buchung)
             db.commit()
 
@@ -115,8 +85,10 @@ def rechnung_status_toggle(rechnung_id: int, db: Session = Depends(get_db)):
 def euer_uebersicht(request: Request, db: Session = Depends(get_db)):
     eintraege = db.query(EinnahmeAusgabe).all()
 
-    einnahmen_summe = sum(e.betrag for e in eintraege if e.typ.lower() == "einnahme")
-    ausgaben_summe = sum(e.betrag for e in eintraege if e.typ.lower() == "ausgabe")
+    einnahmen_summe = sum(
+        e.betrag for e in eintraege if e.typ.lower() == "einnahme")
+    ausgaben_summe = sum(
+        e.betrag for e in eintraege if e.typ.lower() == "ausgabe")
     saldo = einnahmen_summe - ausgaben_summe
 
     from collections import defaultdict

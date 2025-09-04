@@ -1,5 +1,6 @@
 
-import os, sys
+import os
+import sys
 sys.path.insert(0, os.path.abspath('../../'))
 
 # --- Extensions & Defaults ---
@@ -25,7 +26,7 @@ author = "Enis Seferi"
 release = "0.1"
 
 
-latex_engine = 'xelatex' 
+latex_engine = 'xelatex'
 latex_elements = {
     'papersize': 'a4paper',
     'pointsize': '11pt',
@@ -39,4 +40,3 @@ latex_elements = {
         \usepackage{parskip}
     ''',
 }
-

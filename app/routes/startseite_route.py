@@ -8,11 +8,12 @@ from app.models import Unternehmensstatistik
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
+
 @router.get("/")
 def dashboard(request: Request, db: Session = Depends(get_db)):
-    daten = db.query(Unternehmensstatistik).order_by(Unternehmensstatistik.datum.desc()).all()
+    daten = db.query(Unternehmensstatistik).order_by(
+        Unternehmensstatistik.datum.desc()).all()
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
         "daten": daten
     })
-

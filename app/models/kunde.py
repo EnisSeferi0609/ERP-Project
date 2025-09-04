@@ -5,11 +5,12 @@ from sqlalchemy import Column, Integer, String, Date, Text
 from sqlalchemy.orm import relationship
 from database.db import Base
 
-class Kunde(Base): 
+
+class Kunde(Base):
     __tablename__ = "kunde"
-    
+
     id = Column(Integer, primary_key=True)
-    
+
     kundenart = Column(String)
     kunde_firmenname = Column(String)
     kunde_gesellschaftsform = Column(String)
@@ -24,11 +25,11 @@ class Kunde(Base):
     kunde_telefon = Column(String)
     notizen = Column(Text)
     kunde_seit = Column(Date)
-    
+
     # Beziehungen
     rechnungen = relationship("Rechnung", back_populates="kunde")
     auftraege = relationship(
-    "Auftrag",
-    back_populates="kunde",
-    cascade="all, delete-orphan"
-)
+        "Auftrag",
+        back_populates="kunde",
+        cascade="all, delete-orphan"
+    )

@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, Float, Date, Enum
 from database.db import Base
 import enum
 
+
 class KategorieEnum(enum.Enum):
     UMSATZ = "Umsatz"
     KOSTEN = "Kosten"
@@ -11,6 +12,7 @@ class KategorieEnum(enum.Enum):
     AUFTRAEGE = "Aufträge"
     KUNDENANFRAGEN = "Kundenanfragen"
     NEUKUNDEN = "Neukunden"
+
 
 class Unternehmensstatistik(Base):
     __tablename__ = "unternehmensstatistik"

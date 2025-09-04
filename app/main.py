@@ -3,7 +3,6 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
-import os
 
 from sqlalchemy.orm import Session
 from database.db import get_db
@@ -18,12 +17,20 @@ BASE_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = BASE_DIR.parent
 
 app = FastAPI()
-app.mount("/static", StaticFiles(directory=str(PROJECT_ROOT / "static")), name="static")
+app.mount(
+    "/static",
+    StaticFiles(
+        directory=str(
+            PROJECT_ROOT /
+            "static")),
+    name="static")
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+
 
 @app.get("/", response_class=HTMLResponse)
 def startseite(request: Request, db: Session = Depends(get_db)):
-    daten_roh = db.query(Unternehmensstatistik).order_by(Unternehmensstatistik.datum.desc()).all()
+    daten_roh = db.query(Unternehmensstatistik).order_by(
+        Unternehmensstatistik.datum.desc()).all()
     daten = [
         {
             "datum": eintrag.datum.strftime("%Y-%m-%d"),
@@ -33,7 +40,10 @@ def startseite(request: Request, db: Session = Depends(get_db)):
         }
         for eintrag in daten_roh
     ]
-    return templates.TemplateResponse("startseite.html", {"request": request, "daten": daten})
+    return templates.TemplateResponse(
+        "startseite.html", {
+            "request": request, "daten": daten})
+
 
 app.include_router(kunde_route.router)
 app.include_router(auftrag_route.router)

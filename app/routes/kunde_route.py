@@ -1,19 +1,18 @@
-print("✅ kunde_route.py wird geladen")
-from fastapi import APIRouter, Request, Form, Depends, HTTPException
-
-from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import Session
-from database.db import SessionLocal
-from app.models.kunde import Kunde
-import datetime
-import os
-from pathlib import Path
-from typing import Optional
-from sqlalchemy.orm import joinedload 
-from app.models.rechnung import Rechnung
-from app.models.arbeit_komponente import ArbeitKomponente
+from sqlalchemy.orm import joinedload
 from app.models.material_komponente import MaterialKomponente
+from app.models.arbeit_komponente import ArbeitKomponente
+from app.models.rechnung import Rechnung
+from typing import Optional
+from pathlib import Path
+import os
+import datetime
+from app.models.kunde import Kunde
+from database.db import SessionLocal
+from sqlalchemy.orm import Session
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi import APIRouter, Request, Form, Depends, HTTPException
+print("✅ kunde_route.py wird geladen")
 
 
 router = APIRouter()
@@ -21,12 +20,14 @@ router = APIRouter()
 BASE_DIR = Path(__file__).resolve().parent.parent
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
+
 def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+
 
 @router.get("/kunde", response_class=HTMLResponse)
 def formular_anzeigen(request: Request, db: Session = Depends(get_db)):
@@ -40,8 +41,19 @@ def formular_anzeigen(request: Request, db: Session = Depends(get_db)):
 @router.get("/kundenliste", response_class=HTMLResponse)
 def kunden_liste(request: Request, db: Session = Depends(get_db)):
     kunden = db.query(Kunde).options(joinedload(Kunde.auftraege)).all()
-    return templates.TemplateResponse("kunden_liste.html", {"request": request, "kunden": kunden})
-
+    
+    # Add invoice status for each Auftrag
+    for kunde in kunden:
+        for auftrag in kunde.auftraege:
+            rechnung = db.query(Rechnung).filter(Rechnung.auftrag_id == auftrag.id).first()
+            if rechnung:
+                auftrag.invoice_status = "bezahlt" if rechnung.bezahlt else "offen"
+            else:
+                auftrag.invoice_status = "keine Rechnung"
+    
+    return templates.TemplateResponse(
+        "kunden_liste.html", {
+            "request": request, "kunden": kunden})
 
 
 @router.post("/kunden")
@@ -66,7 +78,8 @@ def kunde_speichern(
 ):
     if bestehend == "ja":
         if not kunde_id:
-            raise HTTPException(status_code=400, detail="Kein bestehender Kunde ausgewählt.")
+            raise HTTPException(status_code=400,
+                                detail="Kein bestehender Kunde ausgewählt.")
         try:
             kunde_id = int(kunde_id)
         except ValueError:
@@ -105,20 +118,34 @@ def kunde_speichern(
     else:
         neuer_kunde = Kunde(
             kundenart=kundenart,
-            kunde_firmenname=kunde_firmenname if kundenart == "Gewerbekunde" else None,
-            kunde_gesellschaftsform=kunde_gesellschaftsform if kundenart == "Gewerbekunde" else None,
-            ansprechpartner_vorname=ansprechpartner_vorname if kundenart == "Gewerbekunde" else None,
-            ansprechpartner_nachname=ansprechpartner_nachname if kundenart == "Gewerbekunde" else None,
-            kunde_vorname=kunde_vorname if kundenart == "Privatkunde" else None,
-            kunde_nachname=kunde_nachname if kundenart == "Privatkunde" else None,
+            kunde_firmenname=(
+                kunde_firmenname if kundenart == "Gewerbekunde" else None
+            ),
+            kunde_gesellschaftsform=(
+                kunde_gesellschaftsform
+                if kundenart == "Gewerbekunde" else None
+            ),
+            ansprechpartner_vorname=(
+                ansprechpartner_vorname
+                if kundenart == "Gewerbekunde" else None
+            ),
+            ansprechpartner_nachname=(
+                ansprechpartner_nachname
+                if kundenart == "Gewerbekunde" else None
+            ),
+            kunde_vorname=(
+                kunde_vorname if kundenart == "Privatkunde" else None
+            ),
+            kunde_nachname=(
+                kunde_nachname if kundenart == "Privatkunde" else None
+            ),
             kunde_rechnungsadresse=kunde_rechnungsadresse,
             kunde_rechnung_plz=kunde_rechnung_plz,
             kunde_rechnung_ort=kunde_rechnung_ort,
             kunde_email=kunde_email,
             kunde_telefon=kunde_telefon,
             notizen=notizen,
-            kunde_seit=datetime.date.today()
-        )
+            kunde_seit=datetime.date.today())
         db.add(neuer_kunde)
         db.commit()
 
@@ -156,8 +183,10 @@ def kunde_loeschen(kunde_id: int, db: Session = Depends(get_db)):
 
     # Alle Aufträge dieses Kunden abrufen
     for auftrag in kunde.auftraege:
-        db.query(ArbeitKomponente).filter(ArbeitKomponente.auftrag_id == auftrag.id).delete()
-        db.query(MaterialKomponente).filter(MaterialKomponente.auftrag_id == auftrag.id).delete()
+        db.query(ArbeitKomponente).filter(
+            ArbeitKomponente.auftrag_id == auftrag.id).delete()
+        db.query(MaterialKomponente).filter(
+            MaterialKomponente.auftrag_id == auftrag.id).delete()
         db.query(Rechnung).filter(Rechnung.auftrag_id == auftrag.id).delete()
         db.delete(auftrag)
 
@@ -166,4 +195,3 @@ def kunde_loeschen(kunde_id: int, db: Session = Depends(get_db)):
     db.commit()
 
     return RedirectResponse(url="/kundenliste", status_code=303)
-

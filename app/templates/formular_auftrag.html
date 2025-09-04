@@ -5,17 +5,102 @@
 <h2>Neuen Auftrag anlegen</h2>
 
 <form action="/auftraege" method="post">
+  
+  <!-- Datalists für Vorschläge -->
+  <datalist id="einheiten">
+    <option value="Stück">
+    <option value="Liter">
+    <option value="m²">
+    <option value="m³">
+    <option value="kg">
+    <option value="Meter">
+    <option value="Paket">
+    <option value="Rolle">
+    <option value="Sack">
+    <option value="Eimer">
+  </datalist>
+  
+  <datalist id="mengen">
+    <option value="0.5">
+    <option value="1">
+    <option value="1.5">
+    <option value="2">
+    <option value="2.5">
+    <option value="3">
+    <option value="4">
+    <option value="5">
+    <option value="10">
+    <option value="15">
+    <option value="20">
+    <option value="25">
+    <option value="50">
+    <option value="100">
+  </datalist>
+  
+  <datalist id="preise">
+    <option value="0.50">
+    <option value="1.00">
+    <option value="2.50">
+    <option value="5.00">
+    <option value="7.50">
+    <option value="10.00">
+    <option value="12.50">
+    <option value="15.00">
+    <option value="20.00">
+    <option value="25.00">
+    <option value="30.00">
+    <option value="35.00">
+    <option value="40.00">
+    <option value="45.00">
+    <option value="50.00">
+    <option value="75.00">
+    <option value="100.00">
+  </datalist>
+  
+  <datalist id="stunden">
+    <option value="0.25">
+    <option value="0.5">
+    <option value="0.75">
+    <option value="1">
+    <option value="1.5">
+    <option value="2">
+    <option value="2.5">
+    <option value="3">
+    <option value="4">
+    <option value="5">
+    <option value="6">
+    <option value="7">
+    <option value="8">
+    <option value="10">
+    <option value="12">
+  </datalist>
+  
+  <datalist id="stundenlohn">
+    <option value="25.00">
+    <option value="30.00">
+    <option value="35.00">
+    <option value="40.00">
+    <option value="45.00">
+    <option value="50.00">
+    <option value="55.00">
+    <option value="60.00">
+    <option value="65.00">
+    <option value="70.00">
+    <option value="75.00">
+    <option value="80.00">
+  </datalist>
+
   <label for="kunde">Kunde auswählen:</label>
   <select name="kunde_id" id="kunde" required>
     {% for kunde in kunden %}
-      <option value="{{ kunde.id }}">
-        {% if kunde.kundenart == "Privatkunde" %}
-          {{ kunde.kunde_nachname }} {{ kunde.kunde_vorname }}
-        {% else %}
-          {{ kunde.ansprechpartner_nachname }} {{ kunde.ansprechpartner_vorname }}
-        {% endif %}
-        {% if kunde.kunde_firmenname %} – {{ kunde.kunde_firmenname }}{% endif %}
-      </option>
+    <option value="{{ kunde.id }}">
+      {% if kunde.kundenart == "Privatkunde" %}
+      {{ kunde.kunde_nachname }} {{ kunde.kunde_vorname }}
+      {% else %}
+      {{ kunde.ansprechpartner_nachname }} {{ kunde.ansprechpartner_vorname }}
+      {% endif %}
+      {% if kunde.kunde_firmenname %} – {{ kunde.kunde_firmenname }}{% endif %}
+    </option>
     {% endfor %}
   </select>
 
@@ -46,9 +131,9 @@
       <label>Tätigkeit:</label>
       <input type="text" name="arbeit[]" required>
       <label>Stunden:</label>
-      <input type="number" name="anzahl_stunden[]" step="0.1" required>
+      <input list="stunden" type="number" step="0.25" min="0.25" name="anzahl_stunden[]" placeholder="z.B. 8,5 oder 8.5" required>
       <label>Stundenlohn (€):</label>
-      <input type="number" name="stundenlohn[]" step="0.01" required>
+      <input list="stundenlohn" type="number" step="0.01" min="1" name="stundenlohn[]" placeholder="z.B. 50,00 oder 50.00" required>
       <label>Beschreibung:</label>
       <textarea name="beschreibung_liste[]"></textarea>
       <button type="button" class="remove-btn" onclick="this.parentElement.remove()">Entfernen</button>
@@ -58,18 +143,10 @@
 
   <hr>
 
-  <!-- Material-Komponenten -->
+  <!-- Material-Komponenten (Optional) -->
+  <h4>Material <em>(Optional)</em></h4>
   <div id="material-container">
-    <div class="material-komponente">
-      <h4>Material-Komponente</h4>
-      <label>Bezeichnung:</label>
-      <input type="text" name="material_bezeichnung[]" required>
-      <label>Berechnungseinheit:</label>
-      <input type="text" name="material_berechnungseinheit[]">
-      <label>Preis pro Einheit (€):</label>
-      <input type="number" step="0.01" name="material_preis_pro_einheit[]" required>
-      <button type="button" class="remove-btn" onclick="this.parentElement.remove()">Entfernen</button>
-    </div>
+    <!-- Kein Standard-Material-Eintrag mehr -->
   </div>
   <button type="button" onclick="addMaterial()">+ Material hinzufügen</button>
 
@@ -78,31 +155,46 @@
 </form>
 
 <script>
-function addKomponente() {
-  const container = document.getElementById("komponenten-container");
-  const original = container.querySelector(".arbeit-komponente");
-  const clone = original.cloneNode(true);
-  clone.querySelectorAll("input, textarea").forEach(el => el.value = "");
-  container.appendChild(clone);
-}
-function addMaterial() {
-  const container = document.getElementById("material-container");
-  const original = container.querySelector(".material-komponente");
-  const clone = original.cloneNode(true);
-  clone.querySelectorAll("input").forEach(el => el.value = "");
-  container.appendChild(clone);
-}
-function adresseVonKundeLaden() {
-  const kundeId = document.getElementById("kunde").value;
-  if (!kundeId) { alert("Bitte zuerst einen Kunden auswählen."); return; }
-  fetch(`/api/kunde/${kundeId}`)
-    .then(r => { if (!r.ok) throw new Error("Fehler beim Laden"); return r.json(); })
-    .then(d => {
-      document.getElementById("kunde_leistungsadresse").value = d.kunde_rechnungsadresse || '';
-      document.getElementById("kunde_leistung_plz").value = d.kunde_rechnung_plz || '';
-      document.getElementById("kunde_leistung_ort").value = d.kunde_rechnung_ort || '';
-    })
-    .catch(() => alert("Kundendaten konnten nicht geladen werden."));
-}
+  function addKomponente() {
+    const container = document.getElementById("komponenten-container");
+    const original = container.querySelector(".arbeit-komponente");
+    const clone = original.cloneNode(true);
+    clone.querySelectorAll("input, textarea").forEach(el => el.value = "");
+    container.appendChild(clone);
+  }
+  function addMaterial() {
+    const container = document.getElementById("material-container");
+    const newMaterial = document.createElement("div");
+    newMaterial.className = "material-komponente";
+    newMaterial.innerHTML = `
+    <h4>Material-Komponente</h4>
+    <label>Bezeichnung:</label>
+    <input type="text" name="material_bezeichnung[]">
+    
+    <label>Berechnungseinheit:</label>
+    <input list="einheiten" type="text" name="material_berechnungseinheit[]" placeholder="z.B. Liter, m², Stück">
+    
+    <label>Anzahl:</label>
+    <input list="mengen" type="number" step="0.1" min="0.1" name="material_anzahl[]" placeholder="1,0">
+    
+    <label>Preis pro Einheit (€):</label>
+    <input list="preise" type="number" step="0.01" min="0.01" name="material_preis_pro_einheit[]" placeholder="z.B. 4,50 oder 4.50">
+    
+    <button type="button" class="remove-btn" onclick="this.parentElement.remove()">Entfernen</button>
+  `;
+    container.appendChild(newMaterial);
+  }
+  function adresseVonKundeLaden() {
+    const kundeId = document.getElementById("kunde").value;
+    if (!kundeId) { alert("Bitte zuerst einen Kunden auswählen."); return; }
+    fetch(`/api/kunde/${kundeId}`)
+      .then(r => { if (!r.ok) throw new Error("Fehler beim Laden"); return r.json(); })
+      .then(d => {
+        document.getElementById("kunde_leistungsadresse").value = d.kunde_rechnungsadresse || '';
+        document.getElementById("kunde_leistung_plz").value = d.kunde_rechnung_plz || '';
+        document.getElementById("kunde_leistung_ort").value = d.kunde_rechnung_ort || '';
+      })
+      .catch(() => alert("Kundendaten konnten nicht geladen werden."));
+  }
 </script>
 {% endblock %}

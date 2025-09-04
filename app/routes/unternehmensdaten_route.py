@@ -12,6 +12,7 @@ router = APIRouter()
 BASE_DIR = Path(__file__).resolve().parent.parent
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
+
 def get_db():
     db = SessionLocal()
     try:
@@ -19,13 +20,17 @@ def get_db():
     finally:
         db.close()
 
+
 @router.get("/unternehmensdaten", response_class=HTMLResponse)
-def unternehmensdaten_formular(request: Request, db: Session = Depends(get_db)):
+def unternehmensdaten_formular(
+        request: Request,
+        db: Session = Depends(get_db)):
     daten = db.query(Unternehmensdaten).first()
     return templates.TemplateResponse("unternehmensdaten.html", {
         "request": request,
         "daten": daten
     })
+
 
 @router.post("/unternehmensdaten/speichern")
 def unternehmensdaten_speichern(
@@ -71,5 +76,3 @@ def unternehmensdaten_speichern(
 
     db.commit()
     return RedirectResponse(url="/unternehmensdaten", status_code=303)
-
-

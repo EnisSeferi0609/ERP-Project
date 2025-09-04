@@ -16,9 +16,6 @@ from datetime import date
 from app.models.eur_kategorie import EurKategorie
 
 
-
-
-
 import pdfkit
 import datetime
 import os
@@ -30,6 +27,19 @@ router = APIRouter()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
+
+# German decimal formatting function
+def format_german_decimal(value, decimals=2):
+    """Format number with German decimal notation (comma instead of dot)"""
+    if value is None:
+        value = 0
+    # Format with specified decimal places, then replace dot with comma
+    formatted = f"{float(value):.{decimals}f}"
+    return formatted.replace('.', ',')
+
+# Add the filter to Jinja2 environment
+templates.env.filters['german_decimal'] = format_german_decimal
+
 
 def get_db():
     db = SessionLocal()
@@ -63,38 +73,54 @@ def rechnung_erstellen(
     kunde = db.query(Kunde).filter(Kunde.id == kunde_id).first()
     auftrag = db.query(Auftrag).filter(Auftrag.id == auftrag_id).first()
 
-    komponenten = db.query(ArbeitKomponente).filter(ArbeitKomponente.auftrag_id == auftrag_id).all()
-    materialien = db.query(MaterialKomponente).filter(MaterialKomponente.auftrag_id == auftrag_id).all()
+    komponenten = db.query(ArbeitKomponente).filter(
+        ArbeitKomponente.auftrag_id == auftrag_id).all()
+    materialien = db.query(MaterialKomponente).filter(
+        MaterialKomponente.auftrag_id == auftrag_id).all()
 
     if not auftrag or not kunde or not komponenten:
         return HTMLResponse(
-            content="Auftrag oder Kunde oder Arbeitskomponenten nicht gefunden.",
-            status_code=404
-        )
-
-    # Summen berechnen
-    gesamt_arbeit = sum((k.anzahl_stunden or 0) * (k.stundenlohn or 0) for k in komponenten)
+            content=("Auftrag oder Kunde oder Arbeitskomponenten "
+                     "nicht gefunden."),
+            status_code=404)
+    
+    # Prüfen ob bereits eine Rechnung für diesen Auftrag existiert
+    existierende_rechnung = db.query(Rechnung).filter(
+        Rechnung.auftrag_id == auftrag_id).first()
+    
+    # Summen berechnen (immer neu berechnen für aktuellste Werte)
+    gesamt_arbeit = sum((k.anzahl_stunden or 0) *
+                        (k.stundenlohn or 0) for k in komponenten)
     gesamt_material = sum(
-        (m.preis_pro_einheit or 0) * (getattr(m, "menge", 1) or 1)
+        (m.preis_pro_einheit or 0) * (m.anzahl or 1)
         for m in materialien
     )
 
     faelligkeit = datetime.date.today() + datetime.timedelta(days=30)
 
-    # Rechnung anlegen
-    neue_rechnung = Rechnung(
-        kunde_id=kunde.id,
-        auftrag_id=auftrag.id,
-        unternehmensdaten_id=1,  # Anpassen falls mehrere Unternehmen
-        rechnungsdatum=datetime.date.today(),
-        faelligkeit=faelligkeit,
-        rechtlicher_hinweis="Zahlbar ohne Abzug innerhalb von 14 Tagen.",
-        rechnungssumme_arbeit=gesamt_arbeit,
-        rechnungssumme_material=gesamt_material,
-        rechnungssumme_gesamt=gesamt_arbeit + gesamt_material
-    )
-
-    db.add(neue_rechnung)
+    if existierende_rechnung:
+        # Falls Rechnung bereits existiert, diese mit neuen Werten überschreiben
+        existierende_rechnung.rechnungsdatum = datetime.date.today()
+        existierende_rechnung.faelligkeit = faelligkeit
+        existierende_rechnung.rechnungssumme_arbeit = gesamt_arbeit
+        existierende_rechnung.rechnungssumme_material = gesamt_material
+        existierende_rechnung.rechnungssumme_gesamt = gesamt_arbeit + gesamt_material
+        neue_rechnung = existierende_rechnung
+    else:
+        # Neue Rechnung anlegen
+        neue_rechnung = Rechnung(
+            kunde_id=kunde.id,
+            auftrag_id=auftrag.id,
+            unternehmensdaten_id=1,  # Anpassen falls mehrere Unternehmen
+            rechnungsdatum=datetime.date.today(),
+            faelligkeit=faelligkeit,
+            rechtlicher_hinweis="Zahlbar ohne Abzug innerhalb von 14 Tagen.",
+            rechnungssumme_arbeit=gesamt_arbeit,
+            rechnungssumme_material=gesamt_material,
+            rechnungssumme_gesamt=gesamt_arbeit + gesamt_material
+        )
+        db.add(neue_rechnung)
+    
     db.commit()
     db.refresh(neue_rechnung)
 
@@ -127,7 +153,9 @@ def rechnung_erstellen(
         pdfkit.from_string(rendered_html, pdf_path, configuration=config)
     except Exception as e:
         db.rollback()
-        return HTMLResponse(f"PDF-Generierung fehlgeschlagen: {e}", status_code=500)
+        return HTMLResponse(
+            f"PDF-Generierung fehlgeschlagen: {e}",
+            status_code=500)
 
     # PDF ausliefern
     return FileResponse(
@@ -137,10 +165,11 @@ def rechnung_erstellen(
     )
 
 
-
-
 @router.get("/rechnungsliste")
-def rechnungsliste(request: Request, db: Session = Depends(get_db), status: str = None):
+def rechnungsliste(
+        request: Request,
+        db: Session = Depends(get_db),
+        status: str = None):
     query = db.query(Rechnung)
     if status == "offen":
         query = query.filter(Rechnung.bezahlt == false())
@@ -155,8 +184,6 @@ def rechnungsliste(request: Request, db: Session = Depends(get_db), status: str 
     )
 
 
-
-
 @router.post("/rechnung/{rechnung_id}/status")
 def rechnung_status_toggle(rechnung_id: int, db: Session = Depends(get_db)):
     rechnung = db.query(Rechnung).filter(Rechnung.id == rechnung_id).first()
@@ -168,10 +195,13 @@ def rechnung_status_toggle(rechnung_id: int, db: Session = Depends(get_db)):
 
     if rechnung.bezahlt:
         # vorherige Einnahmen dieser Rechnung entfernen (Idempotenz)
-        db.query(EinnahmeAusgabe).filter_by(rechnung_id=rechnung.id, typ="einnahme").delete()
+        db.query(EinnahmeAusgabe).filter_by(
+            rechnung_id=rechnung.id, typ="einnahme").delete()
 
-        erlöse = db.query(EurKategorie).filter_by(name="Erlöse", typ="einnahme").first()
-        mat_erlöse = db.query(EurKategorie).filter_by(name="Materialerlöse", typ="einnahme").first()
+        erlöse = db.query(EurKategorie).filter_by(
+            name="Erlöse", typ="einnahme").first()
+        mat_erlöse = db.query(EurKategorie).filter_by(
+            name="Materialerlöse", typ="einnahme").first()
 
         eintraege = []
         if (rechnung.rechnungssumme_arbeit or 0) > 0:
@@ -198,12 +228,30 @@ def rechnung_status_toggle(rechnung_id: int, db: Session = Depends(get_db)):
         db.add_all(eintraege)
         db.commit()
     else:
-        db.query(EinnahmeAusgabe).filter_by(rechnung_id=rechnung.id, typ="einnahme").delete()
+        db.query(EinnahmeAusgabe).filter_by(
+            rechnung_id=rechnung.id, typ="einnahme").delete()
         db.commit()
 
     return RedirectResponse("/rechnungsliste", status_code=303)
 
 
-
-
-
+@router.get("/rechnung/{rechnung_id}/download")
+def download_rechnung_pdf(rechnung_id: int, db: Session = Depends(get_db)):
+    """Download einer spezifischen Rechnungs-PDF."""
+    # Prüfe ob Rechnung existiert
+    rechnung = db.query(Rechnung).filter(Rechnung.id == rechnung_id).first()
+    if not rechnung:
+        return HTMLResponse("Rechnung nicht gefunden", status_code=404)
+    
+    # Prüfe ob PDF-Datei existiert
+    pdf_filename = f"Rechnung_{rechnung_id}.pdf"
+    pdf_path = os.path.join(BASE_DIR, "rechnungen", pdf_filename)
+    
+    if not os.path.exists(pdf_path):
+        return HTMLResponse("PDF-Datei nicht gefunden", status_code=404)
+    
+    return FileResponse(
+        path=pdf_path,
+        filename=pdf_filename,
+        media_type='application/pdf'
+    )

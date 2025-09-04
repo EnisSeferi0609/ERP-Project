@@ -1,16 +1,10 @@
 
-from .material_komponente import MaterialKomponente
-from .arbeit_komponente import ArbeitKomponente
-
-from .auftrag import Auftrag
-
-from .rechnung import Rechnung
-
-from .kunde import Kunde
-
-from .unternehmensdaten import Unternehmensdaten
-
-from .unternehmensstatistik import Unternehmensstatistik
-
-from .einnahme_ausgabe import EinnahmeAusgabe
-from .eur_kategorie import EurKategorie
+from .kunde import Kunde  # noqa: F401
+from .auftrag import Auftrag  # noqa: F401
+from .rechnung import Rechnung  # noqa: F401
+from .material_komponente import MaterialKomponente  # noqa: F401
+from .arbeit_komponente import ArbeitKomponente  # noqa: F401
+from .unternehmensdaten import Unternehmensdaten  # noqa: F401
+from .einnahme_ausgabe import EinnahmeAusgabe  # noqa: F401
+from .eur_kategorie import EurKategorie  # noqa: F401
+from .unternehmensstatistik import Unternehmensstatistik, KategorieEnum  # noqa: F401

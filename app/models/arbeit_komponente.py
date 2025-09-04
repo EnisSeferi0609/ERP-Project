@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, Text, Float, Date, ForeignKey
 from sqlalchemy.orm import relationship
 from database.db import Base
-from app.models.eur_kategorie import EurKategorie
+
 
 class ArbeitKomponente(Base):
     __tablename__ = "arbeit_komponente"
@@ -22,9 +22,8 @@ class ArbeitKomponente(Base):
     stundenlohn = Column(Float)
     preis_pro_quadrat = Column(Float)
     kategorie_id = Column(Integer, ForeignKey("eur_kategorie.id"))
-    
-    kategorie = relationship("EurKategorie")
+
+    kategorie = relationship("EurKategorie", back_populates="arbeit_komponenten")
 
     # Beziehung zurück zum Auftrag
     auftrag = relationship("Auftrag", back_populates="arbeit_komponenten")
-

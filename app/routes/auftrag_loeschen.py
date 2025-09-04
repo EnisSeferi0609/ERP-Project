@@ -11,6 +11,8 @@ from app.models.rechnung import Rechnung
 router = APIRouter()
 
 # DB-Session
+
+
 def get_db():
     db = SessionLocal()
     try:
@@ -19,6 +21,8 @@ def get_db():
         db.close()
 
 # Route zum Löschen eines Auftrags + Komponenten
+
+
 @router.post("/auftrag/loeschen/{auftrag_id}")
 def auftrag_loeschen(auftrag_id: int, db: Session = Depends(get_db)):
     auftrag = db.query(Auftrag).filter(Auftrag.id == auftrag_id).first()
@@ -27,8 +31,10 @@ def auftrag_loeschen(auftrag_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Auftrag nicht gefunden")
 
     # Arbeits- und Materialkomponenten löschen
-    db.query(ArbeitKomponente).filter(ArbeitKomponente.auftrag_id == auftrag_id).delete()
-    db.query(MaterialKomponente).filter(MaterialKomponente.auftrag_id == auftrag_id).delete()
+    db.query(ArbeitKomponente).filter(
+        ArbeitKomponente.auftrag_id == auftrag_id).delete()
+    db.query(MaterialKomponente).filter(
+        MaterialKomponente.auftrag_id == auftrag_id).delete()
 
     db.query(Rechnung).filter(Rechnung.auftrag_id == auftrag_id).delete()
 
