@@ -5,14 +5,68 @@
 {% block content %}
 <h2>Rechnungsübersicht</h2>
 
-<div class="tabs">
-    <a href="/rechnungsliste?status=offen"
-       class="{% if status == 'offen' %}active{% endif %}">Offene Rechnungen</a>
-    <a href="/rechnungsliste?status=bezahlt"
-       class="{% if status == 'bezahlt' %}active{% endif %}">Bezahlte Rechnungen</a>
-    <a href="/rechnungsliste"
-       class="{% if not status %}active{% endif %}">Alle</a>
+<div class="invoice-nav-wrapper">
+    <nav class="main-nav">
+        <a href="/rechnungsliste" 
+           class="{% if not status %}active{% endif %}">
+            Alle Rechnungen <span class="count">({{ rechnungen|length }})</span>
+        </a>
+    </nav>
+    <div class="tabs sub-nav">
+        <a href="/rechnungsliste?status=offen"
+           class="{% if status == 'offen' %}active{% endif %}">Offene Rechnungen</a>
+        <a href="/rechnungsliste?status=bezahlt"
+           class="{% if status == 'bezahlt' %}active{% endif %}">Bezahlte Rechnungen</a>
+    </div>
 </div>
+
+<style>
+.invoice-nav-wrapper {
+    margin-bottom: 2rem;
+}
+
+.main-nav {
+    background-color: #e3e8ef;
+    padding: 0.5rem 1rem;
+    display: flex;
+    gap: 1.5rem;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,.04);
+}
+
+.main-nav a {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 600;
+    padding: .5rem 1rem;
+    border-radius: 6px;
+    transition: background-color .2s ease;
+    font-size: 1.05rem;
+}
+
+.main-nav a:hover {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.main-nav a.active {
+    background-color: #2563eb;
+    color: #fff;
+    font-weight: bold;
+}
+
+.count {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.sub-nav {
+    margin-left: 1.5rem;
+    border-left: 3px solid #e3e8ef;
+    padding-left: 0.5rem;
+}
+</style>
 
 <table>
     <thead>
@@ -24,6 +78,7 @@
             <th>Fälligkeit</th>
             <th>Betrag gesamt</th>
             <th>Status</th>
+            <th>Zahlungsdatum</th>
             <th>Aktionen</th>
         </tr>
     </thead>
@@ -47,11 +102,19 @@
             <td>{{ "{:,.2f}".format(r.rechnungssumme_gesamt) }} €</td>
             <td>{{ 'Bezahlt' if r.bezahlt else 'Offen' }}</td>
             <td>
-              <form method="post" action="/rechnung/{{ r.id }}/status" style="display:inline;">
-                <button type="submit" style="font-size: 12px; padding: 4px 8px; margin-right: 5px;">
-                  Als {{ 'offen' if r.bezahlt else 'bezahlt' }} markieren
-                </button>
-              </form>
+                {% if r.payment_date %}
+                    {{ r.payment_date.strftime('%d.%m.%Y') }}
+                {% else %}
+                    —
+                {% endif %}
+            </td>
+            <td>
+              <button onclick="toggleInvoiceStatus({{ r.id }}, {{ 'true' if r.bezahlt else 'false' }})" 
+                      style="font-size: 12px; padding: 4px 8px; margin-right: 5px;">
+                Als {{ 'offen' if r.bezahlt else 'bezahlt' }} markieren
+              </button>
+              <button onclick="window.location.href='/rechnung/{{ r.id }}/materialkosten'" 
+                      style="font-size: 12px; padding: 4px 8px; margin-right: 5px;">Materialkosten</button>
               <button onclick="window.location.href='/rechnung/{{ r.id }}/download'" 
                       style="font-size: 12px; padding: 4px 8px;">Download</button>
             </td>
@@ -59,4 +122,219 @@
         {% endfor %}
     </tbody>
 </table>
+
+<!-- Payment Date Modal -->
+<div id="paymentDateModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Zahlungsdatum eingeben</h3>
+            <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p>Wann wurde die Rechnung bezahlt?</p>
+            <input type="date" id="paymentDateInput" class="date-input">
+            <div class="modal-buttons">
+                <button id="confirmPayment" class="btn-primary">Bestätigen</button>
+                <button id="cancelPayment" class="btn-secondary">Abbrechen</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    width: 400px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: #333;
+    font-size: 18px;
+}
+
+.close {
+    color: #aaa;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.close:hover {
+    color: #000;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal-body p {
+    margin: 0 0 15px 0;
+    color: #666;
+}
+
+.date-input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-size: 16px;
+    margin-bottom: 20px;
+    box-sizing: border-box;
+}
+
+.date-input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.btn-primary, .btn-secondary {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #545b62;
+}
+</style>
+
+<script>
+let currentInvoiceId = null;
+
+function toggleInvoiceStatus(invoiceId, isPaid) {
+    if (isPaid) {
+        // If currently paid, just mark as unpaid (no date needed)
+        submitStatusChange(invoiceId, null);
+    } else {
+        // If currently unpaid, show payment date modal
+        currentInvoiceId = invoiceId;
+        showPaymentDateModal();
+    }
+}
+
+function showPaymentDateModal() {
+    const modal = document.getElementById('paymentDateModal');
+    const dateInput = document.getElementById('paymentDateInput');
+    
+    // Set today's date as default
+    const today = new Date();
+    dateInput.value = today.toISOString().split('T')[0];
+    
+    modal.style.display = 'block';
+    dateInput.focus();
+}
+
+function hidePaymentDateModal() {
+    const modal = document.getElementById('paymentDateModal');
+    modal.style.display = 'none';
+    currentInvoiceId = null;
+}
+
+function submitStatusChange(invoiceId, paymentDate) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/rechnung/' + invoiceId + '/status';
+    
+    if (paymentDate) {
+        const dateInput = document.createElement('input');
+        dateInput.type = 'hidden';
+        dateInput.name = 'payment_date';
+        dateInput.value = paymentDate;
+        form.appendChild(dateInput);
+    }
+    
+    document.body.appendChild(form);
+    form.submit();
+}
+
+// Modal event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('paymentDateModal');
+    const closeBtn = document.querySelector('.close');
+    const confirmBtn = document.getElementById('confirmPayment');
+    const cancelBtn = document.getElementById('cancelPayment');
+    const dateInput = document.getElementById('paymentDateInput');
+    
+    // Close modal when clicking X
+    closeBtn.onclick = hidePaymentDateModal;
+    
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        if (event.target === modal) {
+            hidePaymentDateModal();
+        }
+    };
+    
+    // Cancel button
+    cancelBtn.onclick = hidePaymentDateModal;
+    
+    // Confirm button
+    confirmBtn.onclick = function() {
+        const paymentDate = dateInput.value;
+        if (paymentDate && currentInvoiceId) {
+            submitStatusChange(currentInvoiceId, paymentDate);
+            hidePaymentDateModal();
+        }
+    };
+    
+    // Enter key in date input
+    dateInput.onkeypress = function(event) {
+        if (event.key === 'Enter') {
+            confirmBtn.click();
+        }
+    };
+});
+</script>
 {% endblock %}

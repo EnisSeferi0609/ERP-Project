@@ -1,1 +1,35 @@
-{% extends "base.html" %}{% block title %}Neue Buchung erfassen{% endblock %}{% block content %}<h2>Neue Buchung erfassen</h2><form action="/buchungen" method="post">    <label for="datum">Datum:</label>    <input type="date" id="datum" name="datum" required>    <label for="betrag">Betrag (€):</label>    <input type="number" id="betrag" name="betrag" step="0.01" required>    <label for="typ">Typ:</label>    <select id="typ" name="typ" required>        <option value="einnahme">Einnahme</option>        <option value="ausgabe">Ausgabe</option>    </select>    <label for="kategorie_id">Kategorie:</label>    <select id="kategorie_id" name="kategorie_id" required>        {% for k in kategorien %}            <option value="{{ k.id }}">                {{ k.name }} – {{ k.typ|capitalize }}            </option>        {% endfor %}    </select>    <label for="beschreibung">Beschreibung:</label>    <input type="text" id="beschreibung" name="beschreibung" placeholder="z. B. Miete Januar">    <label for="zahlungsart">Zahlungsart:</label>    <input type="text" id="zahlungsart" name="zahlungsart" placeholder="z. B. Überweisung, Bar">    <button type="submit">Speichern</button></form>{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}Neue Buchung erfassen{% endblock %}
+
+{% block content %}
+<h2>Neue Buchung erfassen</h2>
+
+<form action="/buchungen" method="post">
+    <label for="datum">Datum:</label>
+    <input type="date" id="datum" name="datum" required>
+    
+    <label for="betrag">Betrag (€):</label>
+    <input type="number" id="betrag" name="betrag" step="0.01" required>
+    
+    <label for="typ">Typ:</label>
+    <select id="typ" name="typ" required>
+        <option value="einnahme">Einnahme</option>
+        <option value="ausgabe">Ausgabe</option>
+    </select>
+    
+    <label for="kategorie_id">Kategorie:</label>
+    <select id="kategorie_id" name="kategorie_id" required>
+        {% for k in kategorien %}
+            <option value="{{ k.id }}">
+                {{ k.name }} – {{ k.typ|capitalize }}
+            </option>
+        {% endfor %}
+    </select>
+    
+    <label for="beschreibung">Beschreibung:</label>
+    <input type="text" id="beschreibung" name="beschreibung" placeholder="z. B. Miete Januar">
+    
+    <button type="submit">Speichern</button>
+</form>
+{% endblock %}

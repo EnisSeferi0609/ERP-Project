@@ -12,7 +12,9 @@ class MaterialKomponente(Base):
     bezeichnung = Column(String, nullable=False)
     berechnungseinheit = Column(String)
     anzahl = Column(Float, default=1.0)
-    preis_pro_einheit = Column(Float)
+    preis_pro_einheit = Column(Float)  # Selling price (what customer pays)
+    actual_cost = Column(Float, nullable=True)  # Actual cost (what you paid)
+    receipt_path = Column(String, nullable=True)  # Path to uploaded receipt
     kategorie_id = Column(Integer, ForeignKey("eur_kategorie.id"))
 
     kategorie = relationship("EurKategorie", back_populates="material_komponenten")

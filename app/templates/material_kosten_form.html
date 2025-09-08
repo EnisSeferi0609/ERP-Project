@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Materialkosten eingeben - Rechnung #{{ rechnung.id }}{% endblock %}
+
+{% block content %}
+<h2>Materialkosten eingeben - Rechnung #{{ rechnung.id }}</h2>
+
+<div class="rechnung-info">
+    <p><strong>Kunde:</strong> 
+        {% if rechnung.kunde.kundenart == "Privatkunde" %}
+            {{ rechnung.kunde.kunde_nachname }} {{ rechnung.kunde.kunde_vorname }}
+        {% else %}
+            {{ rechnung.kunde.ansprechpartner_nachname }} {{ rechnung.kunde.ansprechpartner_vorname }}
+            {% if rechnung.kunde.kunde_firmenname %}
+                – {{ rechnung.kunde.kunde_firmenname }}
+            {% endif %}
+        {% endif %}
+    </p>
+    <p><strong>Auftrag:</strong> {{ rechnung.auftrag.beschreibung }}</p>
+</div>
+
+<form action="/rechnung/{{ rechnung.id }}/materialkosten" method="post" enctype="multipart/form-data">
+    <h3>Materialien aus dem Auftrag</h3>
+    
+    {% if materialien %}
+        <table class="material-table">
+            <thead>
+                <tr>
+                    <th>Material</th>
+                    <th>Anzahl</th>
+                    <th>Verkaufspreis (pro Einheit)</th>
+                    <th>Verkaufssumme</th>
+                    <th>Tatsächliche Kosten (gesamt)</th>
+                    <th>Beleg hochladen</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for material in materialien %}
+                <tr>
+                    <td>{{ material.bezeichnung }}</td>
+                    <td>{{ material.anzahl|german_decimal }} {{ material.berechnungseinheit or '' }}</td>
+                    <td>{{ material.preis_pro_einheit|german_decimal }} €</td>
+                    <td>{{ ((material.anzahl or 0) * (material.preis_pro_einheit or 0))|german_decimal }} €</td>
+                    <td>
+                        <input type="number" 
+                               name="actual_cost_{{ material.id }}" 
+                               step="0.01" 
+                               placeholder="Tatsächliche Kosten"
+                               value="{{ material.actual_cost|german_decimal if material.actual_cost else '' }}">
+                        €
+                    </td>
+                    <td>
+                        <input type="file" 
+                               name="receipt_{{ material.id }}" 
+                               accept=".pdf,.jpg,.jpeg,.png">
+                        {% if material.receipt_path %}
+                            <br><small>Bereits hochgeladen: 
+                                <a href="/receipt/{{ material.receipt_path }}" target="_blank">
+                                    {{ material.receipt_path|basename }}
+                                </a>
+                            </small>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">Materialkosten speichern</button>
+            <a href="/rechnungsliste" class="btn-secondary">Zurück zur Rechnungsliste</a>
+        </div>
+    {% else %}
+        <p>Keine Materialien für diesen Auftrag gefunden.</p>
+        <a href="/rechnungsliste" class="btn-secondary">Zurück zur Rechnungsliste</a>
+    {% endif %}
+</form>
+
+<style>
+.rechnung-info {
+    background-color: #f5f5f5;
+    padding: 1rem;
+    border-radius: 5px;
+    margin-bottom: 2rem;
+}
+
+.material-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2rem;
+}
+
+.material-table th,
+.material-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.material-table th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+}
+
+.material-table input[type="number"] {
+    width: 120px;
+    padding: 0.25rem;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+.material-table input[type="file"] {
+    width: 100%;
+    max-width: 200px;
+}
+
+.form-actions {
+    text-align: center;
+}
+
+.btn-primary,
+.btn-secondary {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    margin: 0 0.5rem;
+    text-decoration: none;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.btn-secondary:hover {
+    background-color: #545b62;
+}
+</style>
+{% endblock %}

@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Request, Form, Depends
+from fastapi import APIRouter, Request, Form, Depends, UploadFile, File
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from database.db import SessionLocal
 from app.models.rechnung import Rechnung
 from app.models.kunde import Kunde
@@ -19,6 +19,7 @@ from app.models.eur_kategorie import EurKategorie
 import pdfkit
 import datetime
 import os
+import secrets
 from pathlib import Path
 import base64
 
@@ -37,8 +38,9 @@ def format_german_decimal(value, decimals=2):
     formatted = f"{float(value):.{decimals}f}"
     return formatted.replace('.', ',')
 
-# Add the filter to Jinja2 environment
+# Add filters to Jinja2 environment
 templates.env.filters['german_decimal'] = format_german_decimal
+templates.env.filters['basename'] = lambda path: os.path.basename(path) if path else ''
 
 
 def get_db():
@@ -176,7 +178,7 @@ def rechnungsliste(
     elif status == "bezahlt":
         query = query.filter(Rechnung.bezahlt == true())
 
-    rechnungen = query.all()
+    rechnungen = query.order_by(Rechnung.id.desc()).all()
 
     return templates.TemplateResponse(
         "rechnung_liste.html",
@@ -184,55 +186,117 @@ def rechnungsliste(
     )
 
 
-@router.post("/rechnung/{rechnung_id}/status")
-def rechnung_status_toggle(rechnung_id: int, db: Session = Depends(get_db)):
+
+@router.get("/rechnung/{rechnung_id}/materialkosten", response_class=HTMLResponse)
+def material_kosten_formular(rechnung_id: int, request: Request, db: Session = Depends(get_db)):
+    """Form to enter actual material costs for a specific invoice."""
+    rechnung = db.query(Rechnung).options(
+        joinedload(Rechnung.kunde),
+        joinedload(Rechnung.auftrag)
+    ).filter(Rechnung.id == rechnung_id).first()
+    if not rechnung:
+        return HTMLResponse("Rechnung nicht gefunden", status_code=404)
+    
+    # Get all materials for this invoice's order
+    materialien = db.query(MaterialKomponente).filter(
+        MaterialKomponente.auftrag_id == rechnung.auftrag_id
+    ).all()
+    
+    return templates.TemplateResponse("material_kosten_form.html", {
+        "request": request,
+        "rechnung": rechnung,
+        "materialien": materialien
+    })
+
+
+@router.post("/rechnung/{rechnung_id}/materialkosten")
+async def material_kosten_speichern(
+    rechnung_id: int,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """Save actual material costs and create expense bookings."""
     rechnung = db.query(Rechnung).filter(Rechnung.id == rechnung_id).first()
     if not rechnung:
         return HTMLResponse("Rechnung nicht gefunden", status_code=404)
-
-    rechnung.bezahlt = not rechnung.bezahlt
+    
+    # Get form data
+    form_data = await request.form()
+    
+    # Create receipts directory if it doesn't exist
+    receipts_dir = os.path.join(BASE_DIR, "receipts")
+    os.makedirs(receipts_dir, exist_ok=True)
+    
+    # Get Materialkosten category
+    materialkosten_kategorie = db.query(EurKategorie).filter_by(
+        name="Materialkosten", typ="ausgabe"
+    ).first()
+    
+    # Process each material component
+    materialien = db.query(MaterialKomponente).filter(
+        MaterialKomponente.auftrag_id == rechnung.auftrag_id
+    ).all()
+    
+    total_expenses = 0
+    
+    for material in materialien:
+        # Get actual cost from form
+        actual_cost_key = f"actual_cost_{material.id}"
+        actual_cost = form_data.get(actual_cost_key)
+        
+        # Handle file upload
+        receipt_key = f"receipt_{material.id}"
+        receipt_file = form_data.get(receipt_key)
+        
+        if actual_cost and float(actual_cost) > 0:
+            actual_cost_float = float(actual_cost)
+            total_expenses += actual_cost_float
+            
+            # Update material component with actual cost
+            material.actual_cost = actual_cost_float
+            
+            # Handle file upload if provided
+            if receipt_file and hasattr(receipt_file, 'filename') and receipt_file.filename:
+                # Create safe filename
+                file_extension = os.path.splitext(receipt_file.filename)[1]
+                safe_filename = f"receipt_{rechnung_id}_{material.id}_{secrets.token_hex(8)}{file_extension}"
+                file_path = os.path.join(receipts_dir, safe_filename)
+                
+                # Save file
+                with open(file_path, "wb") as buffer:
+                    content = await receipt_file.read()
+                    buffer.write(content)
+                
+                # Update material component with receipt path
+                material.receipt_path = safe_filename
+            
+            # Create expense booking
+            expense_booking = EinnahmeAusgabe(
+                datum=date.today(),
+                betrag=actual_cost_float,
+                typ="ausgabe",
+                kategorie_id=materialkosten_kategorie.id if materialkosten_kategorie else None,
+                beschreibung=f"Materialkosten {material.bezeichnung} - Rechnung #{rechnung_id}",
+                rechnung_id=rechnung_id
+            )
+            db.add(expense_booking)
+    
     db.commit()
+    return RedirectResponse(f"/rechnungsliste", status_code=303)
 
-    if rechnung.bezahlt:
-        # vorherige Einnahmen dieser Rechnung entfernen (Idempotenz)
-        db.query(EinnahmeAusgabe).filter_by(
-            rechnung_id=rechnung.id, typ="einnahme").delete()
 
-        erlöse = db.query(EurKategorie).filter_by(
-            name="Erlöse", typ="einnahme").first()
-        mat_erlöse = db.query(EurKategorie).filter_by(
-            name="Materialerlöse", typ="einnahme").first()
-
-        eintraege = []
-        if (rechnung.rechnungssumme_arbeit or 0) > 0:
-            eintraege.append(EinnahmeAusgabe(
-                datum=date.today(),
-                typ="einnahme",
-                betrag=rechnung.rechnungssumme_arbeit,
-                beschreibung=f"Erlöse (Arbeit) – Rechnung #{rechnung.id}",
-                zahlungsart="Bank",
-                rechnung_id=rechnung.id,
-                kategorie_id=erlöse.id if erlöse else None
-            ))
-        if (rechnung.rechnungssumme_material or 0) > 0:
-            eintraege.append(EinnahmeAusgabe(
-                datum=date.today(),
-                typ="einnahme",
-                betrag=rechnung.rechnungssumme_material,
-                beschreibung=f"Materialerlöse – Rechnung #{rechnung.id}",
-                zahlungsart="Bank",
-                rechnung_id=rechnung.id,
-                kategorie_id=mat_erlöse.id if mat_erlöse else None
-            ))
-
-        db.add_all(eintraege)
-        db.commit()
-    else:
-        db.query(EinnahmeAusgabe).filter_by(
-            rechnung_id=rechnung.id, typ="einnahme").delete()
-        db.commit()
-
-    return RedirectResponse("/rechnungsliste", status_code=303)
+@router.get("/receipt/{filename}")
+def download_receipt(filename: str):
+    """Download a receipt file."""
+    receipt_path = os.path.join(BASE_DIR, "receipts", filename)
+    
+    if not os.path.exists(receipt_path):
+        return HTMLResponse("Receipt file not found", status_code=404)
+    
+    return FileResponse(
+        path=receipt_path,
+        filename=filename
+    )
 
 
 @router.get("/rechnung/{rechnung_id}/download")

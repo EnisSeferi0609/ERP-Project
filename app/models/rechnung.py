@@ -23,6 +23,7 @@ class Rechnung(Base):
     rechnungssumme_material = Column(Float)
     rechnungssumme_gesamt = Column(Float)
     bezahlt = Column(Boolean, default=False)
+    payment_date = Column(Date, nullable=True)
 
     # Beziehungen
     kunde = relationship("Kunde", back_populates="rechnungen")

@@ -40,7 +40,7 @@ def formular_anzeigen(request: Request, db: Session = Depends(get_db)):
 
 @router.get("/kundenliste", response_class=HTMLResponse)
 def kunden_liste(request: Request, db: Session = Depends(get_db)):
-    kunden = db.query(Kunde).options(joinedload(Kunde.auftraege)).all()
+    kunden = db.query(Kunde).options(joinedload(Kunde.auftraege)).order_by(Kunde.id.desc()).all()
     
     # Add invoice status for each Auftrag
     for kunde in kunden:
@@ -149,7 +149,7 @@ def kunde_speichern(
         db.add(neuer_kunde)
         db.commit()
 
-    return RedirectResponse("/kundenliste", status_code=303)
+    return RedirectResponse("/kunde", status_code=303)
 
 
 @router.get("/api/kunde/{kunde_id}")

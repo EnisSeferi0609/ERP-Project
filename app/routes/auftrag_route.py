@@ -7,11 +7,12 @@ from app.models.kunde import Kunde
 from app.models.arbeit_komponente import ArbeitKomponente
 from app.models.material_komponente import MaterialKomponente
 from app.models.eur_kategorie import EurKategorie
+from app.models.einnahme_ausgabe import EinnahmeAusgabe
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
 import datetime
 import os
-from typing import List
+from typing import List, Optional
 
 router = APIRouter()
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -65,12 +66,12 @@ async def auftrag_anlegen(
     beschreibung_liste: List[str] = Form(..., alias="beschreibung_liste[]"),
 
     # Material (optional)
-    material_bezeichnung: List[str] = Form([], alias="material_bezeichnung[]"),
-    material_berechnungseinheit: List[str] = Form(
-        [], alias="material_berechnungseinheit[]"),
-    material_anzahl: List[float] = Form([], alias="material_anzahl[]"),
-    material_preis_pro_einheit: List[float] = Form(
-        [], alias="material_preis_pro_einheit[]"),
+    material_bezeichnung: Optional[List[str]] = Form(None, alias="material_bezeichnung[]"),
+    material_berechnungseinheit: Optional[List[str]] = Form(
+        None, alias="material_berechnungseinheit[]"),
+    material_anzahl: Optional[List[str]] = Form(None, alias="material_anzahl[]"),
+    material_preis_pro_einheit: Optional[List[str]] = Form(
+        None, alias="material_preis_pro_einheit[]"),
 
     kunde_leistungsadresse: str = Form(...),
     kunde_leistung_plz: str = Form(...),
@@ -81,6 +82,7 @@ async def auftrag_anlegen(
     # Kategorien serverseitig bestimmen
     erloese_id = get_kategorie_id(db, "Erlöse", "einnahme")
     material_erloese_id = get_kategorie_id(db, "Materialerlöse", "einnahme")
+    materialkosten_id = get_kategorie_id(db, "Materialkosten", "ausgabe")
 
     neuer_auftrag = Auftrag(
         kunde_id=kunde_id,
@@ -111,25 +113,30 @@ async def auftrag_anlegen(
         )
         db.add(ak)
 
-    # Material-Komponenten hinzufügen (nur wenn vorhanden)
-    for i in range(len(material_bezeichnung)):
-        if not material_bezeichnung[i] or not material_bezeichnung[i].strip():
-            continue
-        mk = MaterialKomponente(
-            auftrag_id=neuer_auftrag.id,
-            bezeichnung=material_bezeichnung[i],
-            berechnungseinheit=(
-                material_berechnungseinheit[i]
-                if i < len(material_berechnungseinheit) else None
-            ),
-            anzahl=parse_german_decimal(
-                material_anzahl[i] if i < len(material_anzahl) and material_anzahl[i] else "1.0"
-            ),
-            preis_pro_einheit=parse_german_decimal(
-                material_preis_pro_einheit[i] if i < len(material_preis_pro_einheit) and material_preis_pro_einheit[i] else "0.0"
-            ),
-            kategorie_id=material_erloese_id)
-        db.add(mk)
+    # Material-Komponenten hinzufügen (ohne automatische Kostenbuchung)
+    if material_bezeichnung:
+        for i in range(len(material_bezeichnung)):
+            if not material_bezeichnung[i] or not material_bezeichnung[i].strip():
+                continue
+            
+            anzahl = parse_german_decimal(
+                material_anzahl[i] if material_anzahl and i < len(material_anzahl) and material_anzahl[i] else "1.0"
+            )
+            preis_pro_einheit = parse_german_decimal(
+                material_preis_pro_einheit[i] if material_preis_pro_einheit and i < len(material_preis_pro_einheit) and material_preis_pro_einheit[i] else "0.0"
+            )
+            
+            mk = MaterialKomponente(
+                auftrag_id=neuer_auftrag.id,
+                bezeichnung=material_bezeichnung[i],
+                berechnungseinheit=(
+                    material_berechnungseinheit[i]
+                    if material_berechnungseinheit and i < len(material_berechnungseinheit) else None
+                ),
+                anzahl=anzahl,
+                preis_pro_einheit=preis_pro_einheit,
+                kategorie_id=material_erloese_id)
+            db.add(mk)
 
     db.commit()
     return RedirectResponse("/auftrag", status_code=303)

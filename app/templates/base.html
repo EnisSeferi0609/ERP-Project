@@ -1,6 +1,7 @@
 <!-- templates/base.html -->
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}ERP System{% endblock %}</title>
@@ -11,6 +12,7 @@
             border-bottom: 1px solid #ddd;
             padding-bottom: 15px;
         }
+
         .nav-section h3 {
             font-size: 14px;
             font-weight: 600;
@@ -20,9 +22,11 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
+
         .nav-section:last-child {
             border-bottom: none;
         }
+
         .sidebar a {
             display: block;
             padding: 8px 15px;
@@ -30,55 +34,66 @@
             color: #333;
             margin: 2px 0;
         }
+
         .sidebar a:hover {
             background-color: #f0f0f0;
             color: #333;
         }
+
         .sidebar a.active {
             background-color: #007acc;
             color: white;
         }
     </style>
 </head>
+
 <body>
 
-<div class="layout">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <nav>
-            <a href="/" class="{% if request.url.path == '/' %}active{% endif %}">Startseite</a>
-            
-            <div class="nav-section">
-                <h3>Kunden & Aufträge</h3>
-                <a href="/kunde" class="{% if request.url.path == '/kunde' %}active{% endif %}">Kundenformular</a>
-                <a href="/auftrag" class="{% if request.url.path == '/auftrag' %}active{% endif %}">Auftrag anlegen</a>
-                <a href="/kundenliste" class="{% if request.url.path == '/kundenliste' %}active{% endif %}">Kundenliste</a>
-            </div>
+    <div class="layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <nav>
+                <a href="/" class="{% if request.url.path == '/' %}active{% endif %}">Startseite</a>
 
-            <div class="nav-section">
-                <h3>Rechnungswesen</h3>
-                <a href="/rechnung" class="{% if request.url.path == '/rechnung' %}active{% endif %}">Rechnung erstellen</a>
-                <a href="/rechnungsliste" class="{% if request.url.path == '/rechnungsliste' %}active{% endif %}">Rechnungsübersicht</a>
-            </div>
+                <div class="nav-section">
+                    <h3>Kunden & Aufträge</h3>
+                    <a href="/kunde" class="{% if request.url.path == '/kunde' %}active{% endif %}">Kundenformular</a>
+                    <a href="/auftrag" class="{% if request.url.path == '/auftrag' %}active{% endif %}">Auftrag
+                        anlegen</a>
+                    <a href="/kundenliste"
+                        class="{% if request.url.path == '/kundenliste' %}active{% endif %}">Kundenliste</a>
+                </div>
 
-            <div class="nav-section">
-                <h3>Finanzen</h3>
-                <a href="/buchungen/neu" class="{% if request.url.path == '/buchungen/neu' %}active{% endif %}">Buchung erfassen</a>
-                <a href="/euer" class="{% if request.url.path.startswith('/euer') %}active{% endif %}">EÜR-Übersicht</a>
-            </div>
+                <div class="nav-section">
+                    <h3>Rechnungswesen</h3>
+                    <a href="/rechnung" class="{% if request.url.path == '/rechnung' %}active{% endif %}">Rechnung
+                        erstellen</a>
+                    <a href="/rechnungsliste"
+                        class="{% if request.url.path == '/rechnungsliste' %}active{% endif %}">Rechnungsübersicht</a>
+                </div>
 
-            <div class="nav-section">
-                <h3>Einstellungen</h3>
-                <a href="/unternehmensdaten" class="{% if request.url.path == '/unternehmensdaten' %}active{% endif %}">Unternehmensdaten</a>
-            </div>
-        </nav>
-    </aside>
+                <div class="nav-section">
+                    <h3>Finanzen</h3>
+                    <a href="/buchungen/neu"
+                        class="{% if request.url.path == '/buchungen/neu' %}active{% endif %}">Manuelle Buchung</a>
+                    <a href="/euer"
+                        class="{% if request.url.path.startswith('/euer') %}active{% endif %}">EÜR-Übersicht</a>
+                </div>
 
-    <!-- Content -->
-    <main class="content">
-        {% block content %}{% endblock %}
-    </main>
-</div>
+                <div class="nav-section">
+                    <h3>Einstellungen</h3>
+                    <a href="/unternehmensdaten"
+                        class="{% if request.url.path == '/unternehmensdaten' %}active{% endif %}">Unternehmensdaten</a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Content -->
+        <main class="content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
 
 </body>
+
 </html>

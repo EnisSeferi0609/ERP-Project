@@ -18,8 +18,10 @@
             <th style="width: 120px;">Aktion</th>
         </tr>
         {% for kunde in kunden %}
-    <tr>
-        <td>{{ kunde.id }}</td>
+    <tr class="kunde-row" onclick="toggleAuftraege({{ kunde.id }})" style="cursor: pointer;">
+        <td>
+            <span class="dropdown-arrow" id="arrow-{{ kunde.id }}">▶</span> {{ kunde.id }}
+        </td>
         <td>
           {% if kunde.kundenart == "Privatkunde" %}
             {{ kunde.kunde_vorname }}
@@ -39,7 +41,7 @@
         <td>{{ kunde.kundenart }}</td>
         <td>{{ kunde.kunde_firmenname or "-" }}</td>
         <td>{{ kunde.kunde_seit }}</td>
-        <td>
+        <td onclick="event.stopPropagation();">
             <form action="/kunde/loeschen/{{ kunde.id }}" method="post" onsubmit="return confirm('Diesen Kunden und alle Aufträge wirklich löschen?');">
                 <button type="submit" class="delete-button" style="font-size: 12px; padding: 4px 8px;">Kunde löschen</button>
             </form>
@@ -47,10 +49,10 @@
     </tr>
     
     {% for auftrag in kunde.auftraege %}
-    <tr class="auftrag-zeile">
+    <tr class="auftrag-row auftrag-{{ kunde.id }}" style="display: none;">
         <td colspan="8" style="padding-left: 2rem; color: #555;">
             Auftrag #{{ auftrag.id }} – {{ auftrag.beschreibung or "keine Beschreibung" }}
-            (Start: {{ auftrag.auftrag_start or "-" }}, Rechnungsstatus: {{ auftrag.invoice_status }})
+            (Start: {{ auftrag.auftrag_start or "-" }}, Status: {{ auftrag.invoice_status }})
         </td>
         <td>
             <form action="/auftrag/loeschen/{{ auftrag.id }}" method="post" onsubmit="return confirm('Diesen Auftrag wirklich löschen?');">
@@ -62,6 +64,23 @@
 {% endfor %}
 
     </table>
+
+<script>
+function toggleAuftraege(kundeId) {
+    const auftraegeRows = document.querySelectorAll('.auftrag-' + kundeId);
+    const arrow = document.getElementById('arrow-' + kundeId);
+    
+    auftraegeRows.forEach(row => {
+        if (row.style.display === 'none') {
+            row.style.display = 'table-row';
+            arrow.innerHTML = '▼';
+        } else {
+            row.style.display = 'none';
+            arrow.innerHTML = '▶';
+        }
+    });
+}
+</script>
 
 {% endblock %}
 

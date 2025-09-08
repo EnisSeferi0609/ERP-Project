@@ -31,7 +31,6 @@ doc/build/
 *.pdf
 !doc/source/*.pdf
 !er_diagram.pdf
-!app/rechnungen/*.pdf
 
 
 
