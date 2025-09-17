@@ -41,6 +41,7 @@ doc/build/
 *.pdf
 !doc/source/*.pdf
 !er_diagram.pdf
+!BuildFlow_ERP_Documentation.pdf
 
 
 
