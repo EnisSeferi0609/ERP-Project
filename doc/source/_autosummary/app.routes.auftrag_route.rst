@@ -10,6 +10,6 @@
    
       auftrag_anlegen
       formular_auftrag
-      get_db
       get_kategorie_id
+      parse_german_decimal
    

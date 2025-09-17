@@ -9,5 +9,4 @@
    .. autosummary::
    
       auftrag_loeschen
-      get_db
    

@@ -8,7 +8,6 @@
 
    .. autosummary::
    
-      get_db
       unternehmensdaten_formular
       unternehmensdaten_speichern
    

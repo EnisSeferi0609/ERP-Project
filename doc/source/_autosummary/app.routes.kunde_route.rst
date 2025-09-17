@@ -9,9 +9,10 @@
    .. autosummary::
    
       formular_anzeigen
-      get_db
+      get_auftrag_details
       get_kunde_data
       kunde_loeschen
       kunde_speichern
       kunden_liste
+      update_auftrag
    
