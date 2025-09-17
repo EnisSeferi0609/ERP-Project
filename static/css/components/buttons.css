@@ -1,0 +1,257 @@
+/* Button Component Styles */
+
+/* Base Button */
+.btn {
+  display: inline-block;
+  padding: var(--spacing-2, 0.5rem) var(--spacing-4, 1rem);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm, 4px);
+  text-decoration: none;
+  font-weight: var(--font-medium, 500);
+  font-size: var(--text-base, 1rem);
+  line-height: var(--leading-normal, 1.5);
+  text-align: center;
+  vertical-align: middle;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  user-select: none;
+}
+
+.btn:hover {
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.btn:focus {
+  outline: 0;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Button Variants */
+.btn-primary {
+  background-color: var(--color-primary, #475569);
+  border-color: var(--color-primary, #475569);
+  color: var(--color-white, #ffffff);
+}
+
+.btn-primary:hover {
+  background-color: var(--color-primary-hover, #334155);
+  border-color: var(--color-primary-hover, #334155);
+  color: var(--color-white, #ffffff);
+  box-shadow: var(--shadow-md, 0 4px 6px rgba(0, 0, 0, 0.1));
+}
+
+.btn-secondary {
+  background-color: var(--color-secondary, #6c757d);
+  border-color: var(--color-secondary, #6c757d);
+  color: var(--color-white, #ffffff);
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-secondary-hover, #5a6268);
+  border-color: var(--color-secondary-hover, #5a6268);
+  color: var(--color-white, #ffffff);
+}
+
+.btn-success {
+  background-color: var(--color-success, #28a745);
+  border-color: var(--color-success, #28a745);
+  color: var(--color-white, #ffffff);
+}
+
+.btn-success:hover {
+  background-color: var(--color-success-hover, #218838);
+  border-color: var(--color-success-hover, #218838);
+  color: var(--color-white, #ffffff);
+}
+
+.btn-danger {
+  background-color: var(--color-danger, #dc3545);
+  border-color: var(--color-danger, #dc3545);
+  color: var(--color-white, #ffffff);
+}
+
+.btn-danger:hover {
+  background-color: var(--color-danger-hover, #c82333);
+  border-color: var(--color-danger-hover, #c82333);
+  color: var(--color-white, #ffffff);
+}
+
+.btn-warning {
+  background-color: var(--color-warning, #ffc107);
+  border-color: var(--color-warning, #ffc107);
+  color: var(--color-black, #000000);
+}
+
+.btn-warning:hover {
+  background-color: var(--color-warning-hover, #e0a800);
+  border-color: var(--color-warning-hover, #e0a800);
+  color: var(--color-black, #000000);
+}
+
+.btn-info {
+  background-color: var(--color-info, #2563eb);
+  border-color: var(--color-info, #2563eb);
+  color: var(--color-white, #ffffff);
+}
+
+.btn-info:hover {
+  background-color: var(--color-info-hover, #1d4ed8);
+  border-color: var(--color-info-hover, #1d4ed8);
+  color: var(--color-white, #ffffff);
+}
+
+/* Outline Button Variants */
+.btn-outline-primary {
+  background-color: transparent;
+  border-color: var(--color-primary, #475569);
+  color: var(--color-primary, #475569);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--color-primary, #475569);
+  border-color: var(--color-primary, #475569);
+  color: var(--color-white, #ffffff);
+}
+
+.btn-outline-secondary {
+  background-color: transparent;
+  border-color: var(--color-secondary, #6c757d);
+  color: var(--color-secondary, #6c757d);
+}
+
+.btn-outline-secondary:hover {
+  background-color: var(--color-secondary, #6c757d);
+  border-color: var(--color-secondary, #6c757d);
+  color: var(--color-white, #ffffff);
+}
+
+/* Button Sizes */
+.btn-sm {
+  padding: var(--spacing-1, 0.25rem) var(--spacing-2, 0.5rem);
+  font-size: var(--text-sm, 0.875rem);
+  border-radius: var(--radius-sm, 4px);
+}
+
+.btn-lg {
+  padding: var(--spacing-3, 0.75rem) var(--spacing-6, 1.5rem);
+  font-size: var(--text-lg, 1.125rem);
+  border-radius: var(--radius-md, 8px);
+}
+
+/* ERP Specific Button Styles */
+.btn-invoice {
+  background-color: var(--color-invoice, #007bff);
+  border-color: var(--color-invoice, #007bff);
+  color: var(--color-white, #ffffff);
+}
+
+.btn-invoice:hover {
+  background-color: var(--color-invoice-hover, #0056b3);
+  border-color: var(--color-invoice-hover, #0056b3);
+}
+
+.btn-customer {
+  background-color: var(--color-customer, #17a2b8);
+  border-color: var(--color-customer, #17a2b8);
+  color: var(--color-white, #ffffff);
+}
+
+.btn-customer:hover {
+  background-color: var(--color-customer-hover, #138496);
+  border-color: var(--color-customer-hover, #138496);
+}
+
+.btn-order {
+  background-color: var(--color-order, #6f42c1);
+  border-color: var(--color-order, #6f42c1);
+  color: var(--color-white, #ffffff);
+}
+
+.btn-order:hover {
+  background-color: var(--color-order-hover, #5a359a);
+  border-color: var(--color-order-hover, #5a359a);
+}
+
+/* Button Groups */
+.btn-group {
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.btn-group>.btn:not(:first-child) {
+  margin-left: -1px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.btn-group>.btn:not(:last-child) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/* Button with Icon */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2, 0.5rem);
+}
+
+/* Block Button */
+.btn-block {
+  display: block;
+  width: 100%;
+}
+
+/* Workflow button styles moved to components/workflow.css */
+
+/* Status-specific buttons */
+.btn-status-open {
+  background-color: var(--color-status-open, #ffc107);
+  color: var(--color-black, #000000);
+}
+
+.btn-status-paid {
+  background-color: var(--color-status-paid, #28a745);
+  color: var(--color-white, #ffffff);
+}
+
+.btn-status-overdue {
+  background-color: var(--color-status-overdue, #dc3545);
+  color: var(--color-white, #ffffff);
+}
+
+/* Delete and Remove Buttons */
+.delete-btn,
+.delete-button,
+.remove-btn {
+  background-color: var(--color-danger, #dc3545);
+  color: var(--color-white, #ffffff);
+  border: none;
+  border-radius: var(--radius-sm, 4px);
+  padding: var(--spacing-1, 0.25rem) var(--spacing-2, 0.5rem);
+  font-size: var(--text-xs, 0.75rem);
+  font-weight: var(--font-medium, 500);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.delete-btn:hover,
+.delete-button:hover,
+.remove-btn:hover {
+  background-color: var(--color-danger-hover, #c82333);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md, 0 4px 6px rgba(0, 0, 0, 0.1));
+}
+
+.delete-btn:active,
+.delete-button:active,
+.remove-btn:active {
+  transform: translateY(0);
+}

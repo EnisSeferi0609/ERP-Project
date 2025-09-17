@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Integer, Float, String, Date, ForeignKey
+"""Income and expense tracking for German EÜR tax compliance."""
+
+from sqlalchemy import Column, Integer, String, Date, ForeignKey, Text, DECIMAL
 from database.db import Base
 from sqlalchemy.orm import relationship
 
@@ -9,10 +11,9 @@ class EinnahmeAusgabe(Base):
     id = Column(Integer, primary_key=True)
     datum = Column(Date, nullable=False)
     typ = Column(String, nullable=False)  # 'einnahme' oder 'ausgabe'
-    betrag = Column(Float, nullable=False)
+    betrag = Column(DECIMAL(12, 2), nullable=False)  # Precise currency amounts
     beschreibung = Column(String)
-    zahlungsart = Column(String)
-    belegpfad = Column(String)
+    receipt_files = Column(Text, nullable=True)  # JSON string of receipt file names
 
     kategorie_id = Column(
         Integer,

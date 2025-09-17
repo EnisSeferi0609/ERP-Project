@@ -1,3 +1,5 @@
+"""EÜR (German tax) category definitions for income/expense classification."""
+
 from sqlalchemy import Column, Integer, String, UniqueConstraint
 from database.db import Base
 from sqlalchemy.orm import relationship

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Fehler - BuildFlow ERP{% endblock %}
+
+{% block main_content %}
+<div class="container mt-5">
+    <div class="text-center">
+        <h1 class="display-1 text-danger">{{ status_code }}</h1>
+        <h2 class="mb-4">Ein Fehler ist aufgetreten</h2>
+
+        {% if status_code == 404 %}
+            <p class="lead">Die angeforderte Seite wurde nicht gefunden.</p>
+        {% elif status_code == 500 %}
+            <p class="lead">Ein interner Serverfehler ist aufgetreten.</p>
+        {% else %}
+            <p class="lead">{{ detail }}</p>
+        {% endif %}
+
+        <div class="mt-4">
+            <a href="/" class="btn btn-primary">
+                <i class="fas fa-home"></i> Zur Startseite
+            </a>
+            <a href="javascript:history.back()" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Zurück
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

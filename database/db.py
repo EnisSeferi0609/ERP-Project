@@ -1,16 +1,14 @@
-"""
-Datenbank-Basisfunktionen und SQLAlchemy-Setup.
+"""Database foundation functions and SQLAlchemy setup.
 
-Stellt Engine, SessionLocal, Base und die FastAPI-Dependency `get_db` bereit.
+Provides engine, SessionLocal, Base and FastAPI dependency `get_db`.
 """
 
 from typing import Iterator
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session, declarative_base
+from config import config
 
-DATABASE_URL = "sqlite:///./erp.db"  # ggf. per ENV variabel machen
-
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+engine = create_engine(config.DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 

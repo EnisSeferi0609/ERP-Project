@@ -4,6 +4,143 @@
 
 {% block content %}
 
+<style>
+/* Modal styles (same as in kundenliste) */
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 0;
+    border: 1px solid #888;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    padding: 1rem 1.5rem;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: #333;
+}
+
+.close {
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.close:hover {
+    color: #000;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    padding: 1rem 1.5rem;
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    border-radius: 0 0 8px 8px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.auftrag-details-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: #555;
+}
+
+.form-group input,
+.form-group select {
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    background-color: #f8f9fa;
+    color: #6c757d;
+}
+
+.komponente-group {
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background-color: #f8f9fa;
+}
+
+.komponente-group:last-child {
+    margin-bottom: 0;
+}
+
+.loading {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+}
+
+.error {
+    text-align: center;
+    padding: 2rem;
+    color: #dc3545;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-content {
+        margin: 2% auto;
+        width: 95%;
+    }
+}
+</style>
+
 <h2>Rechnung erstellen</h2>
 
 <form method="post" action="/rechnungen">
@@ -13,44 +150,293 @@
         {% for kunde in kunden %}
         <option value="{{ kunde.id }}">
             {% if kunde.kundenart == "Privatkunde" %}
-                {{ kunde.kunde_nachname }} {{ kunde.kunde_vorname }}
+            {{ kunde.kunde_nachname }} {{ kunde.kunde_vorname }}
             {% else %}
-                {{ kunde.ansprechpartner_nachname }} {{ kunde.ansprechpartner_vorname }}
+            {{ kunde.ansprechpartner_nachname }} {{ kunde.ansprechpartner_vorname }}
             {% endif %}
             {% if kunde.kunde_firmenname %}
-                – {{ kunde.kunde_firmenname }}
+            – {{ kunde.kunde_firmenname }}
             {% endif %}
         </option>
         {% endfor %}
     </select>
 
     <label for="auftrag_id">Auftrag auswählen:</label>
-    <select name="auftrag_id" id="auftrag_id" required>
+    <select name="auftrag_id" id="auftrag_id" required onchange="updateDetailsButton()">
         <option value="">-- Bitte zuerst Kunden wählen --</option>
         {% for auftrag in auftraege %}
-            <option value="{{ auftrag.id }}" data-kunde="{{ auftrag.kunde_id }}">
-                Auftrag #{{ auftrag.id }} – {{ auftrag.beschreibung }}
-            </option>
+        <option value="{{ auftrag.id }}" data-kunde="{{ auftrag.kunde_id }}">
+            Auftrag #{{ auftrag.id }} – {{ auftrag.beschreibung }}
+        </option>
         {% endfor %}
     </select>
 
-    <button type="submit">PDF-Rechnung erstellen</button>
+    <button type="button" id="auftragDetailsBtn" onclick="openSelectedAuftragDetails()" class="btn btn-primary" disabled style="margin-top: 0.5rem;">
+        Auftrag Details
+    </button>
+
+    <label for="rechnungsdatum">Rechnungsdatum:</label>
+    <input type="date" name="rechnungsdatum" id="rechnungsdatum" required>
+
+    <button type="submit" class="btn btn-success">PDF-Rechnung erstellen</button>
 </form>
 
-<script>
-function filterAuftraege() {
-    const kundeSelect = document.getElementById("kunde_id");
-    const auftragSelect = document.getElementById("auftrag_id");
-    const selectedKundeId = kundeSelect.value;
+<!-- Auftrag Details Modal (same as in kundenliste) -->
+<div id="auftragDetailsModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-header">
+            <h3 id="auftragModalTitle">Auftrag Details</h3>
+            <span class="close" onclick="closeAuftragDetails()">&times;</span>
+        </div>
+        <div class="modal-body" id="auftragDetailsContent">
+            <div class="loading">Lädt...</div>
+        </div>
+        <div class="modal-footer">
+            <button onclick="closeAuftragDetails()" class="btn btn-secondary">Schließen</button>
+        </div>
+    </div>
+</div>
 
-    for (const option of auftragSelect.options) {
-        if (!option.dataset.kunde) continue; // erste Placeholder-Option
-        option.style.display = option.dataset.kunde === selectedKundeId ? "block" : "none";
+<script>
+// Set today's date as default for invoice date
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const todayString = `${year}-${month}-${day}`;
+    
+    document.getElementById('rechnungsdatum').value = todayString;
+});
+</script>
+
+<!-- BuildFlow Workflow Navigation -->
+<div class="workflow-navigation">
+    <h3>Nächster Schritt im BuildFlow</h3>
+    <div class="next-step-card">
+        <div class="step-info">
+            <div class="step-number">4</div>
+            <div class="step-details">
+                <h4>Rechnung als bezahlt markieren</h4>
+                <p>Ändern Sie den Rechnungsstatus, geben Sie Materialkosten an und laden Sie Materialrechnungen
+                    hoch</p>
+            </div>
+        </div>
+        <a href="/rechnungsliste" class="workflow-btn">
+            <span>→ Rechnungen verwalten</span>
+        </a>
+    </div>
+
+    <div class="workflow-overview">
+        <span>Workflow: </span>
+        <span class="completed">✓ Kunde anlegen</span>
+        <span class="completed">✓ Auftrag erstellen</span>
+        <span class="completed">✓ Rechnung generieren</span>
+        <span class="next">→ Rechnung als bezahlt markieren</span>
+        <span class="pending">→ Buchhaltung</span>
+    </div>
+</div>
+
+
+<script>
+    function filterAuftraege() {
+        const kundeSelect = document.getElementById("kunde_id");
+        const auftragSelect = document.getElementById("auftrag_id");
+        const selectedKundeId = kundeSelect.value;
+
+        for (const option of auftragSelect.options) {
+            if (!option.dataset.kunde) continue; // erste Placeholder-Option
+            option.style.display = option.dataset.kunde === selectedKundeId ? "block" : "none";
+        }
+
+        auftragSelect.value = ""; // Reset Auswahl
+        updateDetailsButton(); // Update details button state
     }
 
-    auftragSelect.value = ""; // Reset Auswahl
-}
+    function updateDetailsButton() {
+        const auftragSelect = document.getElementById("auftrag_id");
+        const detailsBtn = document.getElementById("auftragDetailsBtn");
+
+        if (auftragSelect.value) {
+            detailsBtn.disabled = false;
+        } else {
+            detailsBtn.disabled = true;
+        }
+    }
+
+    function openSelectedAuftragDetails() {
+        const auftragSelect = document.getElementById("auftrag_id");
+        const auftragId = auftragSelect.value;
+
+        if (!auftragId) {
+            alert('Bitte wählen Sie zuerst einen Auftrag aus.');
+            return;
+        }
+
+        openAuftragDetails(auftragId);
+    }
+
+    function openAuftragDetails(auftragId) {
+        const modal = document.getElementById('auftragDetailsModal');
+        const content = document.getElementById('auftragDetailsContent');
+        const title = document.getElementById('auftragModalTitle');
+
+        title.textContent = `Auftrag #${auftragId} Details`;
+        content.innerHTML = '<div class="loading">Lädt...</div>';
+        modal.style.display = 'block';
+
+        // Fetch auftrag details
+        fetch(`/api/auftrag/${auftragId}`)
+            .then(response => response.json())
+            .then(data => {
+                displayAuftragDetails(data);
+            })
+            .catch(error => {
+                content.innerHTML = '<div class="error">Fehler beim Laden der Auftrag-Details: ' + error.message + '</div>';
+            });
+    }
+
+    function displayAuftragDetails(data) {
+        const content = document.getElementById('auftragDetailsContent');
+
+        content.innerHTML = `
+            <div class="auftrag-details-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Beschreibung:</label>
+                        <input type="text" value="${data.beschreibung || ''}" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Startdatum:</label>
+                        <input type="date" value="${data.auftrag_start || ''}" readonly>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Leistungsadresse:</label>
+                        <input type="text" value="${data.kunde_leistungsadresse || ''}" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Rechnungsstatus:</label>
+                        <input type="text" value="${data.rechnungsstatus || ''}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>PLZ:</label>
+                        <input type="text" value="${data.kunde_leistung_plz || ''}" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Ort:</label>
+                        <input type="text" value="${data.kunde_leistung_ort || ''}" readonly>
+                    </div>
+                </div>
+
+                <h4>Arbeitskomponenten</h4>
+                <div id="arbeitskomponenten">
+                    ${data.arbeit_komponenten.map((ak, index) => `
+                        <div class="komponente-group">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Tätigkeit:</label>
+                                    <input type="text" value="${ak.arbeit || ''}" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label>Beschreibung:</label>
+                                    <input type="text" value="${ak.beschreibung || ''}" readonly>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Start:</label>
+                                    <input type="date" value="${ak.komponente_start || ''}" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label>Ende:</label>
+                                    <input type="date" value="${ak.komponente_ende || ''}" readonly>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Berechnungsbasis:</label>
+                                    <select disabled>
+                                        <option value="stunden" ${ak.berechnungsbasis === 'stunden' ? 'selected' : ''}>Stunden</option>
+                                        <option value="quadratmeter" ${ak.berechnungsbasis === 'quadratmeter' ? 'selected' : ''}>Quadratmeter</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <!-- Empty space for layout -->
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                ${ak.berechnungsbasis === 'stunden' ? `
+                                    <div class="form-group">
+                                        <label>Anzahl Stunden:</label>
+                                        <input type="number" step="0.1" value="${ak.anzahl_stunden || ''}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Stundenlohn:</label>
+                                        <input type="number" step="0.01" value="${ak.stundenlohn || ''}" readonly>
+                                    </div>
+                                ` : `
+                                    <div class="form-group">
+                                        <label>Anzahl Quadratmeter:</label>
+                                        <input type="number" step="0.1" value="${ak.anzahl_quadrat || ''}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Preis pro Quadratmeter:</label>
+                                        <input type="number" step="0.01" value="${ak.preis_pro_quadrat || ''}" readonly>
+                                    </div>
+                                `}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <h4>Materialkomponenten</h4>
+                <div id="materialkomponenten">
+                    ${data.materialien.map((mk, index) => `
+                        <div class="komponente-group">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Bezeichnung:</label>
+                                    <input type="text" value="${mk.bezeichnung || ''}" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label>Berechnungseinheit:</label>
+                                    <input type="text" value="${mk.berechnungseinheit || ''}" readonly>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Anzahl:</label>
+                                    <input type="number" step="0.1" value="${mk.anzahl || ''}" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label>Preis pro Einheit:</label>
+                                    <input type="number" step="0.01" value="${mk.preis_pro_einheit || ''}" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    function closeAuftragDetails() {
+        document.getElementById('auftragDetailsModal').style.display = 'none';
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('auftragDetailsModal');
+        if (event.target === modal) {
+            closeAuftragDetails();
+        }
+    }
 </script>
 
 {% endblock %}
-

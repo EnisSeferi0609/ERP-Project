@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey
+"""Material cost components for construction orders."""
+
+from sqlalchemy import Column, Integer, String, ForeignKey, DECIMAL
 from sqlalchemy.orm import relationship
 from database.db import Base
 
@@ -11,9 +13,9 @@ class MaterialKomponente(Base):
 
     bezeichnung = Column(String, nullable=False)
     berechnungseinheit = Column(String)
-    anzahl = Column(Float, default=1.0)
-    preis_pro_einheit = Column(Float)  # Selling price (what customer pays)
-    actual_cost = Column(Float, nullable=True)  # Actual cost (what you paid)
+    anzahl = Column(DECIMAL(10, 3), default=1.0)  # Allow 3 decimal places for quantities
+    preis_pro_einheit = Column(DECIMAL(10, 2))  # Selling price (what customer pays)
+    actual_cost = Column(DECIMAL(10, 2), nullable=True)  # Actual cost (what you paid)
     receipt_path = Column(String, nullable=True)  # Path to uploaded receipt
     kategorie_id = Column(Integer, ForeignKey("eur_kategorie.id"))
 

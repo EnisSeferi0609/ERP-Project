@@ -6,45 +6,7 @@
     <meta charset="UTF-8">
     <title>{% block title %}ERP System{% endblock %}</title>
     <link rel="stylesheet" href="/static/css/style.css">
-    <style>
-        .nav-section {
-            margin: 20px 0;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 15px;
-        }
-
-        .nav-section h3 {
-            font-size: 14px;
-            font-weight: 600;
-            color: #555;
-            margin: 0 0 10px 0;
-            padding: 0 15px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .nav-section:last-child {
-            border-bottom: none;
-        }
-
-        .sidebar a {
-            display: block;
-            padding: 8px 15px;
-            text-decoration: none;
-            color: #333;
-            margin: 2px 0;
-        }
-
-        .sidebar a:hover {
-            background-color: #f0f0f0;
-            color: #333;
-        }
-
-        .sidebar a.active {
-            background-color: #007acc;
-            color: white;
-        }
-    </style>
+    <link rel="stylesheet" href="/static/css/main.css">
 </head>
 
 <body>
@@ -54,6 +16,7 @@
         <aside class="sidebar">
             <nav>
                 <a href="/" class="{% if request.url.path == '/' %}active{% endif %}">Startseite</a>
+                <a href="/dashboard" class="{% if request.url.path == '/dashboard' %}active{% endif %}">Dashboard</a>
 
                 <div class="nav-section">
                     <h3>Kunden & Aufträge</h3>

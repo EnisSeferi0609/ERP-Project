@@ -7,4 +7,3 @@ from .arbeit_komponente import ArbeitKomponente  # noqa: F401
 from .unternehmensdaten import Unternehmensdaten  # noqa: F401
 from .einnahme_ausgabe import EinnahmeAusgabe  # noqa: F401
 from .eur_kategorie import EurKategorie  # noqa: F401
-from .unternehmensstatistik import Unternehmensstatistik, KategorieEnum  # noqa: F401

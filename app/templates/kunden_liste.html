@@ -4,8 +4,158 @@
 
 {% block content %}
 
+<style>
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 0;
+    border: 1px solid #888;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    padding: 1rem 1.5rem;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: #333;
+}
+
+.close {
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.close:hover {
+    color: #000;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    padding: 1rem 1.5rem;
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    border-radius: 0 0 8px 8px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.auftrag-details-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: #555;
+}
+
+.form-group input,
+.form-group select {
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.form-group input[readonly],
+.form-group select[disabled] {
+    background-color: #f8f9fa;
+    color: #6c757d;
+}
+
+.komponente-group {
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background-color: #f8f9fa;
+}
+
+.komponente-group:last-child {
+    margin-bottom: 0;
+}
+
+.loading {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+}
+
+.error {
+    text-align: center;
+    padding: 2rem;
+    color: #dc3545;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+}
+
+.warning {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    padding: 1rem;
+    margin-top: 1rem;
+    border-radius: 4px;
+    color: #856404;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-content {
+        margin: 2% auto;
+        width: 95%;
+    }
+}
+</style>
+
     <h2>Alle Kunden</h2>
-    <table>
+    <div class="table-responsive">
+        <table class="customers-table table-hover table-striped">
         <tr>
             <th>ID</th>
             <th>Vorname</th>
@@ -15,7 +165,7 @@
             <th>Kundenart</th>
             <th>Firma</th>
             <th>Seit</th>
-            <th style="width: 120px;">Aktion</th>
+            <th>Aktion</th>
         </tr>
         {% for kunde in kunden %}
     <tr class="kunde-row" onclick="toggleAuftraege({{ kunde.id }})" style="cursor: pointer;">
@@ -42,11 +192,23 @@
         <td>{{ kunde.kunde_firmenname or "-" }}</td>
         <td>{{ kunde.kunde_seit }}</td>
         <td onclick="event.stopPropagation();">
-            <form action="/kunde/loeschen/{{ kunde.id }}" method="post" onsubmit="return confirm('Diesen Kunden und alle Aufträge wirklich löschen?');">
-                <button type="submit" class="delete-button" style="font-size: 12px; padding: 4px 8px;">Kunde löschen</button>
-            </form>
+            <div class="table-actions">
+                <form action="/kunde/loeschen/{{ kunde.id }}" method="post" onsubmit="return confirm('Diesen Kunden und alle Aufträge wirklich löschen?');">
+                    <button type="submit" class="btn btn-danger btn-sm">Löschen</button>
+                </form>
+            </div>
         </td>
     </tr>
+    
+    <!-- Customer Notes Row -->
+    {% if kunde.notizen %}
+    <tr class="auftrag-row auftrag-{{ kunde.id }}" style="display: none;">
+        <td colspan="8" style="padding-left: 2rem; color: #666; background-color: #f8f9fa; font-style: italic;">
+            <strong>Notizen:</strong> {{ kunde.notizen }}
+        </td>
+        <td style="background-color: #f8f9fa;"></td>
+    </tr>
+    {% endif %}
     
     {% for auftrag in kunde.auftraege %}
     <tr class="auftrag-row auftrag-{{ kunde.id }}" style="display: none;">
@@ -55,21 +217,48 @@
             (Start: {{ auftrag.auftrag_start or "-" }}, Status: {{ auftrag.invoice_status }})
         </td>
         <td>
-            <form action="/auftrag/loeschen/{{ auftrag.id }}" method="post" onsubmit="return confirm('Diesen Auftrag wirklich löschen?');">
-                <button type="submit" class="delete-button" style="font-size: 12px; padding: 4px 8px;">Auftrag löschen</button>
-            </form>
+            <div class="table-actions" style="display: flex; flex-direction: column; gap: 0.25rem;">
+                <button onclick="openAuftragDetails({{ auftrag.id }})" class="btn btn-primary btn-sm">Details</button>
+                <form action="/auftrag/loeschen/{{ auftrag.id }}" method="post" onsubmit="return confirm('Diesen Auftrag wirklich löschen?');" style="margin: 0;">
+                    <button type="submit" class="btn btn-danger btn-sm">Auftrag löschen</button>
+                </form>
+            </div>
         </td>
     </tr>
     {% endfor %}
 {% endfor %}
 
     </table>
+    </div>
+
+<!-- Auftrag Details Modal -->
+<div id="auftragDetailsModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-header">
+            <h3 id="auftragModalTitle">Auftrag Details</h3>
+            <span class="close" onclick="closeAuftragDetails()">&times;</span>
+        </div>
+        <div class="modal-body" id="auftragDetailsContent">
+            <div class="loading">Lädt...</div>
+        </div>
+        <div class="modal-footer">
+            <button id="editAuftragBtn" onclick="toggleEditMode()" class="btn btn-primary" style="display: none;">Bearbeiten</button>
+            <button id="saveAuftragBtn" onclick="saveAuftrag()" class="btn btn-success" style="display: none;">Speichern</button>
+            <button id="cancelEditBtn" onclick="cancelEdit()" class="btn btn-secondary" style="display: none;">Abbrechen</button>
+            <button onclick="closeAuftragDetails()" class="btn btn-secondary">Schließen</button>
+        </div>
+    </div>
+</div>
 
 <script>
+let currentAuftragId = null;
+let originalFormData = {};
+let isEditMode = false;
+
 function toggleAuftraege(kundeId) {
     const auftraegeRows = document.querySelectorAll('.auftrag-' + kundeId);
     const arrow = document.getElementById('arrow-' + kundeId);
-    
+
     auftraegeRows.forEach(row => {
         if (row.style.display === 'none') {
             row.style.display = 'table-row';
@@ -79,6 +268,305 @@ function toggleAuftraege(kundeId) {
             arrow.innerHTML = '▶';
         }
     });
+}
+
+function openAuftragDetails(auftragId) {
+    currentAuftragId = auftragId;
+    const modal = document.getElementById('auftragDetailsModal');
+    const content = document.getElementById('auftragDetailsContent');
+    const title = document.getElementById('auftragModalTitle');
+
+    title.textContent = `Auftrag #${auftragId} Details`;
+    content.innerHTML = '<div class="loading">Lädt...</div>';
+    modal.style.display = 'block';
+
+    // Fetch auftrag details
+    fetch(`/api/auftrag/${auftragId}`)
+        .then(response => response.json())
+        .then(data => {
+            displayAuftragDetails(data);
+        })
+        .catch(error => {
+            content.innerHTML = '<div class="error">Fehler beim Laden der Auftrag-Details: ' + error.message + '</div>';
+        });
+}
+
+function displayAuftragDetails(data) {
+    const content = document.getElementById('auftragDetailsContent');
+    const editBtn = document.getElementById('editAuftragBtn');
+
+    // Check if editing should be allowed (no invoice exists)
+    const canEdit = !data.has_invoice;
+
+    content.innerHTML = `
+        <div class="auftrag-details-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Beschreibung:</label>
+                    <input type="text" id="beschreibung" value="${data.beschreibung || ''}" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Startdatum:</label>
+                    <input type="date" id="auftrag_start" value="${data.auftrag_start || ''}" readonly>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Leistungsadresse:</label>
+                    <input type="text" id="kunde_leistungsadresse" value="${data.kunde_leistungsadresse || ''}" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Rechnungsstatus (nur anzeigen):</label>
+                    <input type="text" value="${data.rechnungsstatus || ''}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>PLZ:</label>
+                    <input type="text" id="kunde_leistung_plz" value="${data.kunde_leistung_plz || ''}" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Ort:</label>
+                    <input type="text" id="kunde_leistung_ort" value="${data.kunde_leistung_ort || ''}" readonly>
+                </div>
+            </div>
+
+            <h4>Arbeitskomponenten</h4>
+            <div id="arbeitskomponenten">
+                ${data.arbeit_komponenten.map((ak, index) => `
+                    <div class="komponente-group">
+                        <input type="hidden" id="ak_id_${index}" value="${ak.id}">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Tätigkeit:</label>
+                                <input type="text" id="ak_arbeit_${index}" value="${ak.arbeit || ''}" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Beschreibung:</label>
+                                <input type="text" id="ak_beschreibung_${index}" value="${ak.beschreibung || ''}" readonly>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Start:</label>
+                                <input type="date" id="ak_komponente_start_${index}" value="${ak.komponente_start || ''}" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Ende:</label>
+                                <input type="date" id="ak_komponente_ende_${index}" value="${ak.komponente_ende || ''}" readonly>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Berechnungsbasis:</label>
+                                <select id="ak_berechnungsbasis_${index}" disabled onchange="toggleArbeitBasis(${index})">
+                                    <option value="stunden" ${ak.berechnungsbasis === 'stunden' ? 'selected' : ''}>Stunden</option>
+                                    <option value="quadratmeter" ${ak.berechnungsbasis === 'quadratmeter' ? 'selected' : ''}>Quadratmeter</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <!-- Empty space for layout -->
+                            </div>
+                        </div>
+                        <div class="form-row" id="ak_calculation_fields_${index}">
+                            ${ak.berechnungsbasis === 'stunden' ? `
+                                <div class="form-group">
+                                    <label>Anzahl Stunden:</label>
+                                    <input type="number" step="0.1" id="ak_anzahl_stunden_${index}" value="${ak.anzahl_stunden || ''}" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label>Stundenlohn:</label>
+                                    <input type="number" step="0.01" id="ak_stundenlohn_${index}" value="${ak.stundenlohn || ''}" readonly>
+                                </div>
+                            ` : `
+                                <div class="form-group">
+                                    <label>Anzahl Quadratmeter:</label>
+                                    <input type="number" step="0.1" id="ak_anzahl_quadrat_${index}" value="${ak.anzahl_quadrat || ''}" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label>Preis pro Quadratmeter:</label>
+                                    <input type="number" step="0.01" id="ak_preis_pro_quadrat_${index}" value="${ak.preis_pro_quadrat || ''}" readonly>
+                                </div>
+                            `}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+
+            <h4>Materialkomponenten</h4>
+            <div id="materialkomponenten">
+                ${data.materialien.map((mk, index) => `
+                    <div class="komponente-group">
+                        <input type="hidden" id="mk_id_${index}" value="${mk.id}">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Bezeichnung:</label>
+                                <input type="text" id="mk_bezeichnung_${index}" value="${mk.bezeichnung || ''}" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Berechnungseinheit:</label>
+                                <input type="text" id="mk_berechnungseinheit_${index}" value="${mk.berechnungseinheit || ''}" readonly>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Anzahl:</label>
+                                <input type="number" step="0.1" id="mk_anzahl_${index}" value="${mk.anzahl || ''}" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Preis pro Einheit:</label>
+                                <input type="number" step="0.01" id="mk_preis_pro_einheit_${index}" value="${mk.preis_pro_einheit || ''}" readonly>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+
+            ${!canEdit ? '<div class="warning" style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 1rem; margin-top: 1rem; border-radius: 4px;">⚠️ Dieser Auftrag kann nicht bearbeitet werden, da bereits eine Rechnung erstellt wurde.</div>' : ''}
+        </div>
+    `;
+
+    if (canEdit) {
+        editBtn.style.display = 'inline-block';
+    } else {
+        editBtn.style.display = 'none';
+    }
+
+    // Store original data for cancel functionality
+    originalFormData = { ...data };
+}
+
+function toggleEditMode() {
+    isEditMode = true;
+    const inputs = document.querySelectorAll('#auftragDetailsContent input, #auftragDetailsContent select');
+    inputs.forEach(input => input.removeAttribute('readonly'));
+    inputs.forEach(input => input.removeAttribute('disabled'));
+
+    document.getElementById('editAuftragBtn').style.display = 'none';
+    document.getElementById('saveAuftragBtn').style.display = 'inline-block';
+    document.getElementById('cancelEditBtn').style.display = 'inline-block';
+}
+
+function cancelEdit() {
+    isEditMode = false;
+    displayAuftragDetails(originalFormData);
+    document.getElementById('editAuftragBtn').style.display = 'inline-block';
+    document.getElementById('saveAuftragBtn').style.display = 'none';
+    document.getElementById('cancelEditBtn').style.display = 'none';
+}
+
+function saveAuftrag() {
+    if (!currentAuftragId) return;
+
+    // Collect form data
+    const formData = new FormData();
+    formData.append('beschreibung', document.getElementById('beschreibung').value);
+    formData.append('auftrag_start', document.getElementById('auftrag_start').value);
+    formData.append('kunde_leistungsadresse', document.getElementById('kunde_leistungsadresse').value);
+    formData.append('kunde_leistung_plz', document.getElementById('kunde_leistung_plz').value);
+    formData.append('kunde_leistung_ort', document.getElementById('kunde_leistung_ort').value);
+
+    // Collect arbeitskomponenten data
+    const arbeitskomponenten = [];
+    let akIndex = 0;
+    while (document.getElementById(`ak_id_${akIndex}`)) {
+        const ak = {
+            id: document.getElementById(`ak_id_${akIndex}`).value,
+            arbeit: document.getElementById(`ak_arbeit_${akIndex}`).value,
+            beschreibung: document.getElementById(`ak_beschreibung_${akIndex}`).value,
+            komponente_start: document.getElementById(`ak_komponente_start_${akIndex}`).value,
+            komponente_ende: document.getElementById(`ak_komponente_ende_${akIndex}`).value,
+            berechnungsbasis: document.getElementById(`ak_berechnungsbasis_${akIndex}`).value,
+            anzahl_stunden: document.getElementById(`ak_anzahl_stunden_${akIndex}`)?.value || null,
+            stundenlohn: document.getElementById(`ak_stundenlohn_${akIndex}`)?.value || null,
+            anzahl_quadrat: document.getElementById(`ak_anzahl_quadrat_${akIndex}`)?.value || null,
+            preis_pro_quadrat: document.getElementById(`ak_preis_pro_quadrat_${akIndex}`)?.value || null
+        };
+        arbeitskomponenten.push(ak);
+        akIndex++;
+    }
+    formData.append('arbeitskomponenten', JSON.stringify(arbeitskomponenten));
+
+    // Collect materialkomponenten data
+    const materialkomponenten = [];
+    let mkIndex = 0;
+    while (document.getElementById(`mk_id_${mkIndex}`)) {
+        const mk = {
+            id: document.getElementById(`mk_id_${mkIndex}`).value,
+            bezeichnung: document.getElementById(`mk_bezeichnung_${mkIndex}`).value,
+            berechnungseinheit: document.getElementById(`mk_berechnungseinheit_${mkIndex}`).value,
+            anzahl: document.getElementById(`mk_anzahl_${mkIndex}`).value,
+            preis_pro_einheit: document.getElementById(`mk_preis_pro_einheit_${mkIndex}`).value
+        };
+        materialkomponenten.push(mk);
+        mkIndex++;
+    }
+    formData.append('materialkomponenten', JSON.stringify(materialkomponenten));
+
+    // Save changes
+    fetch(`/api/auftrag/${currentAuftragId}`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (response.ok) {
+            alert('Änderungen gespeichert!');
+            closeAuftragDetails();
+            // Refresh the page to show updated data
+            location.reload();
+        } else {
+            alert('Fehler beim Speichern!');
+        }
+    })
+    .catch(error => {
+        alert('Fehler beim Speichern: ' + error.message);
+    });
+}
+
+function toggleArbeitBasis(index) {
+    // This function will handle switching between Stunden and Quadratmeter calculation fields
+    const basis = document.getElementById(`ak_berechnungsbasis_${index}`).value;
+    const calculationFields = document.getElementById(`ak_calculation_fields_${index}`);
+
+    if (basis === 'stunden') {
+        calculationFields.innerHTML = `
+            <div class="form-group">
+                <label>Anzahl Stunden:</label>
+                <input type="number" step="0.1" id="ak_anzahl_stunden_${index}" value="" ${!isEditMode ? 'readonly' : ''}>
+            </div>
+            <div class="form-group">
+                <label>Stundenlohn:</label>
+                <input type="number" step="0.01" id="ak_stundenlohn_${index}" value="" ${!isEditMode ? 'readonly' : ''}>
+            </div>
+        `;
+    } else {
+        calculationFields.innerHTML = `
+            <div class="form-group">
+                <label>Anzahl Quadratmeter:</label>
+                <input type="number" step="0.1" id="ak_anzahl_quadrat_${index}" value="" ${!isEditMode ? 'readonly' : ''}>
+            </div>
+            <div class="form-group">
+                <label>Preis pro Quadratmeter:</label>
+                <input type="number" step="0.01" id="ak_preis_pro_quadrat_${index}" value="" ${!isEditMode ? 'readonly' : ''}>
+            </div>
+        `;
+    }
+}
+
+function closeAuftragDetails() {
+    document.getElementById('auftragDetailsModal').style.display = 'none';
+    currentAuftragId = null;
+    isEditMode = false;
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('auftragDetailsModal');
+    if (event.target === modal) {
+        closeAuftragDetails();
+    }
 }
 </script>
 

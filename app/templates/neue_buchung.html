@@ -5,31 +5,235 @@
 {% block content %}
 <h2>Neue Buchung erfassen</h2>
 
-<form action="/buchungen" method="post">
-    <label for="datum">Datum:</label>
-    <input type="date" id="datum" name="datum" required>
-    
+<!-- Error Message Display -->
+{% if error_message %}
+<div style="background-color: #fee; border: 1px solid #fcc; padding: 1rem; margin-bottom: 1rem; border-radius: 4px;">
+    <strong>⚠️ Fehler:</strong>
+    {{ error_message }}
+</div>
+{% endif %}
+
+<form action="/buchungen" method="post" enctype="multipart/form-data">
+    <!-- Bulk Booking Toggle -->
+    <div style="margin-bottom: 1rem; padding: 0.75rem; background: #f8f9fa; border-radius: 5px; border: 1px solid #dee2e6;">
+        <label style="display: flex; align-items: center; gap: 0.5rem;">
+            <input type="checkbox" id="bulk-mode" onchange="toggleBulkMode()">
+            Mehrere Buchungen gleichzeitig erstellen
+        </label>
+        <small style="color: #666; display: block; margin-top: 0.25rem;">
+            Für wiederkehrende Buchungen wie monatliche Miete oder Versicherung
+        </small>
+    </div>
+
+    <!-- Single Date Field -->
+    <div id="single-date-field" style="display: block;">
+        <label for="datum">Datum:</label>
+        <input type="date" id="datum" name="datum" required style="width: auto; display: inline-block;">
+    </div>
+
+    <!-- Bulk Date Fields (hidden by default) -->
+    <div id="bulk-date-fields" style="display: none;">
+        <label for="start_datum">Von Datum:</label>
+        <input type="date" id="start_datum" name="start_datum" style="width: auto; display: inline-block;">
+
+        <label for="end_datum">Bis Datum:</label>
+        <input type="date" id="end_datum" name="end_datum" style="width: auto; display: inline-block;">
+
+        <label for="interval">Wiederholung:</label>
+        <select id="interval" name="interval" style="width: auto; display: inline-block;">
+            <option value="monthly">Monatlich (am gleichen Tag)</option>
+            <option value="quarterly">Vierteljährlich</option>
+            <option value="yearly">Jährlich</option>
+        </select>
+
+        <input type="hidden" id="bulk_mode" name="bulk_mode" value="false">
+    </div>
+
     <label for="betrag">Betrag (€):</label>
     <input type="number" id="betrag" name="betrag" step="0.01" required>
-    
+
     <label for="typ">Typ:</label>
     <select id="typ" name="typ" required>
+        <option value="">Bitte wählen...</option>
         <option value="einnahme">Einnahme</option>
         <option value="ausgabe">Ausgabe</option>
     </select>
-    
+
     <label for="kategorie_id">Kategorie:</label>
     <select id="kategorie_id" name="kategorie_id" required>
+        <option value="">Bitte wählen...</option>
         {% for k in kategorien %}
             <option value="{{ k.id }}">
                 {{ k.name }} – {{ k.typ|capitalize }}
             </option>
         {% endfor %}
     </select>
-    
+
     <label for="beschreibung">Beschreibung:</label>
     <input type="text" id="beschreibung" name="beschreibung" placeholder="z. B. Miete Januar">
-    
-    <button type="submit">Speichern</button>
+
+    <div class="file-input-section">
+        <label for="receipt_files">Belege hochladen:</label>
+        <input type="file"
+               id="receipt_files"
+               name="receipt_files"
+               accept=".pdf,.jpg,.jpeg,.png,.gif,.tiff,.bmp"
+               title="Erlaubte Dateitypen: PDF, JPG, PNG, GIF, TIFF, BMP (max. 10MB pro Datei)"
+               multiple>
+        <div class="file-info">
+            <small>Mehrere Dateien gleichzeitig möglich (PDF, Bilder, max. 10MB pro Datei)</small>
+        </div>
+        <div class="files-section">
+            <div class="section-title">Belege (0):</div>
+            <div class="files-list" id="files-list">
+                <!-- Selected files will be shown here -->
+            </div>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-success" id="submit-btn">Speichern</button>
 </form>
+
+<script>
+// Store files for file management
+let selectedFiles = [];
+
+// Store the original single date value to preserve it when toggling
+let originalSingleDate = '';
+
+// Toggle between single and bulk booking mode
+function toggleBulkMode() {
+    const bulkModeCheckbox = document.getElementById('bulk-mode');
+    const singleDateField = document.getElementById('single-date-field');
+    const bulkDateFields = document.getElementById('bulk-date-fields');
+    const bulkModeInput = document.getElementById('bulk_mode');
+    const submitBtn = document.getElementById('submit-btn');
+    const datumInput = document.getElementById('datum');
+    const startDatumInput = document.getElementById('start_datum');
+    const endDatumInput = document.getElementById('end_datum');
+
+    if (bulkModeCheckbox.checked) {
+        // Store current single date value before switching
+        originalSingleDate = datumInput.value;
+
+        // Switch to bulk mode
+        singleDateField.style.display = 'none';
+        bulkDateFields.style.display = 'block';
+        bulkModeInput.value = 'true';
+        submitBtn.textContent = 'Mehrere Buchungen erstellen';
+
+        // Remove required from single date, add to bulk dates
+        datumInput.removeAttribute('required');
+        datumInput.disabled = true; // Disable field so it won't be submitted
+        startDatumInput.setAttribute('required', 'required');
+        endDatumInput.setAttribute('required', 'required');
+    } else {
+        // Switch to single mode and restore original date
+        singleDateField.style.display = 'block';
+        bulkDateFields.style.display = 'none';
+        bulkModeInput.value = 'false';
+        submitBtn.textContent = 'Speichern';
+
+        // Restore the original date value
+        if (originalSingleDate) {
+            datumInput.value = originalSingleDate;
+        }
+
+        // Add required to single date, remove from bulk dates
+        datumInput.setAttribute('required', 'required');
+        datumInput.disabled = false; // Re-enable field for submission
+        startDatumInput.removeAttribute('required');
+        endDatumInput.removeAttribute('required');
+    }
+}
+
+function handleFileSelection(input) {
+    const newFiles = Array.from(input.files);
+    const filesSection = document.querySelector('.files-section');
+    const sectionTitle = filesSection.querySelector('.section-title');
+    const filesList = document.getElementById('files-list');
+
+    // Add new files to our storage
+    selectedFiles = selectedFiles.concat(newFiles);
+
+    // Update display
+    updateFilesDisplay();
+
+    // Update the actual file input with all our stored files
+    updateFileInput(input);
+}
+
+function updateFilesDisplay() {
+    const filesSection = document.querySelector('.files-section');
+    const sectionTitle = filesSection.querySelector('.section-title');
+    const filesList = document.getElementById('files-list');
+
+    // Update section title
+    sectionTitle.textContent = `Belege (${selectedFiles.length}):`;
+
+    // Clear and rebuild file list
+    filesList.innerHTML = '';
+
+    selectedFiles.forEach((file, index) => {
+        const fileDiv = document.createElement('div');
+        fileDiv.className = 'file-item pending-file';
+        fileDiv.innerHTML = `
+            <span class="file-name">${file.name}</span>
+            <span class="file-size">(${(file.size / (1024*1024)).toFixed(2)} MB)</span>
+            <button type="button" onclick="removePendingFile(${index})" class="remove-file-btn">×</button>
+        `;
+        filesList.appendChild(fileDiv);
+    });
+}
+
+function updateFileInput(input) {
+    // Create a new DataTransfer object to set files
+    const dt = new DataTransfer();
+
+    selectedFiles.forEach(file => {
+        dt.items.add(file);
+    });
+
+    input.files = dt.files;
+}
+
+function removePendingFile(fileIndex) {
+    const input = document.getElementById('receipt_files');
+
+    // Remove file from our storage
+    selectedFiles.splice(fileIndex, 1);
+
+    // Update display
+    updateFilesDisplay();
+
+    // Update the actual file input
+    updateFileInput(input);
+}
+
+// Validate file size on selection
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('receipt_files');
+
+    fileInput.addEventListener('change', function() {
+        const files = Array.from(this.files);
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        let hasInvalidFiles = false;
+
+        files.forEach(file => {
+            if (file.size > maxSize) {
+                hasInvalidFiles = true;
+                alert(`Datei "${file.name}" ist zu groß. Maximum: 10MB`);
+            }
+        });
+
+        if (!hasInvalidFiles) {
+            handleFileSelection(this);
+        } else {
+            // Reset input if invalid files
+            this.value = '';
+        }
+    });
+});
+</script>
+
 {% endblock %}

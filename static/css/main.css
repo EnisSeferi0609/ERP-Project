@@ -1,0 +1,29 @@
+/* Main CSS File - Imports all component and theme files */
+
+/* Import order: themes first, then base styles, then components, then pages */
+
+/* 1. CSS Variables and Themes */
+@import url('themes/colors.css');
+@import url('themes/spacing.css');
+
+/* 2. Component Styles */
+@import url('components/buttons.css');
+@import url('components/navigation.css');
+@import url('components/workflow.css');
+@import url('components/cards.css');
+@import url('components/tables.css');
+@import url('components/forms.css');
+@import url('components/modals.css');
+@import url('components/materials.css');
+@import url('components/year-tabs.css');
+
+/* 3. Page-Specific Styles */
+@import url('pages/homepage.css');
+@import url('pages/dashboard.css');
+@import url('pages/eur-overview.css');
+
+/* 4. Print Styles */
+@import url('print/invoice-print.css');
+
+/* Additional global styles that haven't been moved to separate files yet */
+/* These will be gradually extracted as we continue the refactoring process */

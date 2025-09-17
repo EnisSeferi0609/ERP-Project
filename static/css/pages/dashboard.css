@@ -1,0 +1,240 @@
+/* Dashboard Page Styles */
+
+/* KPI Grid */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .kpi-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+    }
+}
+
+.kpi-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+}
+
+.kpi-content h3 {
+    margin: 0 0 0.2rem 0;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.kpi-content p {
+    margin: 0 0 0.2rem 0;
+    color: #666;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.kpi-content small {
+    color: #888;
+    font-size: 0.75rem;
+}
+
+.kpi-card.profit.positive {
+    border-left: 4px solid #10b981;
+}
+
+.kpi-card.profit.negative {
+    border-left: 4px solid #ef4444;
+}
+
+.kpi-card.revenue {
+    border-left: 4px solid #3b82f6;
+}
+
+.kpi-card.expenses {
+    border-left: 4px solid #f59e0b;
+}
+
+/* Charts */
+.charts-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.chart-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    min-height: 400px;
+}
+
+.chart-card h3 {
+    margin: 0 0 1rem 0;
+    color: #333;
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+
+.chart-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: #666;
+}
+
+.loading-spinner {
+    width: 30px;
+    height: 30px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.chart-tabs {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.chart-tab {
+    padding: 0.5rem 1rem;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    color: #666;
+}
+
+.chart-tab:hover {
+    background: #e9ecef;
+    color: #333;
+}
+
+.chart-tab.active {
+    background: #2563eb;
+    color: white;
+    border-color: #2563eb;
+}
+
+/* Activity Section */
+.activity-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+@media (max-width: 768px) {
+    .activity-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+.activity-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+}
+
+.activity-card h3 {
+    margin: 0 0 1rem 0;
+    color: #333;
+}
+
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.activity-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.activity-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.activity-customer, .activity-date {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.activity-amount {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+}
+
+.activity-status.paid {
+    color: #10b981;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.activity-status.unpaid {
+    color: #ef4444;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.activity-type.einnahme {
+    color: #10b981;
+    font-weight: bold;
+}
+
+.activity-type.ausgabe {
+    color: #ef4444;
+    font-weight: bold;
+}

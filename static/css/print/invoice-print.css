@@ -1,0 +1,162 @@
+/* PDF Invoice Print Styles */
+body {
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+header {
+  position: relative;
+  margin-bottom: 50px;
+  border-bottom: 2px solid #1a2b45;
+  padding-bottom: 20px;
+}
+
+.logo-container {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.logo {
+  width: 150px;
+}
+
+.info-bereich {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+}
+
+.absender, .empfaenger {
+  width: 48%;
+  line-height: 1.5;
+}
+
+.absender strong {
+  font-weight: 700;
+}
+
+h1 {
+  font-size: 22pt;
+  color: #1a2b45;
+  margin-bottom: 10px;
+  border-left: 6px solid #1a2b45;
+  padding-left: 10px;
+}
+
+h3 {
+  font-size: 14pt;
+  color: #1a2b45;
+  margin-top: 30px;
+  margin-bottom: 10px;
+  border-left: 4px solid #1a2b45;
+  padding-left: 8px;
+}
+
+/* Table Styles */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  table-layout: fixed;
+}
+
+th, td {
+  padding: 12px 15px;
+  border: 1px solid #e0e0e0;
+}
+
+th {
+  background-color: #ecf0f1;
+  text-align: left;
+  font-weight: 600;
+  color: #34495e;
+}
+
+tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+/* Fixed column widths for work table */
+.work-table th:nth-child(1), .work-table td:nth-child(1) { width: 18%; } /* Datum */
+.work-table th:nth-child(2), .work-table td:nth-child(2) { width: 15%; } /* Tätigkeit */
+.work-table th:nth-child(3), .work-table td:nth-child(3) { width: 20%; } /* Beschreibung */
+.work-table th:nth-child(4), .work-table td:nth-child(4) { width: 10%; } /* Menge */
+.work-table th:nth-child(5), .work-table td:nth-child(5) { width: 10%; } /* Einheit */
+.work-table th:nth-child(6), .work-table td:nth-child(6) { width: 12%; } /* Preis */
+.work-table th:nth-child(7), .work-table td:nth-child(7) { width: 15%; } /* Gesamt */
+
+/* Fixed column widths for material table */
+.material-table th:nth-child(1), .material-table td:nth-child(1) { width: 35%; } /* Bezeichnung */
+.material-table th:nth-child(2), .material-table td:nth-child(2) { width: 15%; } /* Anzahl */
+.material-table th:nth-child(3), .material-table td:nth-child(3) { width: 15%; } /* Einheit */
+.material-table th:nth-child(4), .material-table td:nth-child(4) { width: 17%; } /* Preis pro Einheit */
+.material-table th:nth-child(5), .material-table td:nth-child(5) { width: 18%; } /* Gesamt */
+
+/* Prevent line breaks in specific columns */
+.work-table td:nth-child(4), /* Menge */
+.work-table td:nth-child(5), /* Einheit */
+.work-table td:nth-child(6), /* Preis */
+.work-table td:nth-child(7), /* Gesamt */
+.material-table td:nth-child(2), /* Anzahl */
+.material-table td:nth-child(3), /* Einheit */
+.material-table td:nth-child(4), /* Preis pro Einheit */
+.material-table td:nth-child(5) { /* Gesamt */
+  white-space: nowrap;
+}
+
+/* Date column - allow manual breaks but prevent overflow */
+.work-table td:nth-child(1) { /* Datum */
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: none;
+}
+
+/* Allow text wrapping only for specific columns */
+.work-table td:nth-child(2), /* Tätigkeit */
+.work-table td:nth-child(3), /* Beschreibung */
+.material-table td:nth-child(1) { /* Bezeichnung */
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Summary and Total Sections */
+.summe-sektion {
+  margin-top: 15px;
+  margin-bottom: 20px;
+  font-size: 11pt;
+  text-align: right;
+  color: #34495e;
+  background-color: #f8f9fa;
+  padding: 8px 15px;
+  border-radius: 4px;
+}
+
+.gesamt {
+  margin-top: 30px;
+  font-weight: bold;
+  font-size: 12pt;
+  text-align: right;
+  color: #2c3e50;
+}
+
+/* Footer */
+.footer {
+  margin-top: 60px;
+  font-size: 10pt;
+  color: #7f8c8d;
+  border-top: 1px solid #bdc3c7;
+  padding-top: 15px;
+  line-height: 1.6;
+}
+
+/* Prevent euro signs from breaking onto new lines */
+.nowrap-euro {
+  white-space: nowrap;
+}
+
+td:nth-child(6), td:nth-child(7), td:nth-child(4):has-text("€") {
+  white-space: nowrap;
+}

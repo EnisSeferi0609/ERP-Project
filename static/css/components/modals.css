@@ -1,0 +1,118 @@
+/* Modal Component Styles */
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    width: 400px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: #333;
+    font-size: 18px;
+}
+
+.close {
+    color: #aaa;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.close:hover {
+    color: #000;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal-body p {
+    margin: 0 0 15px 0;
+    color: #666;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.modal-btn-primary, .modal-btn-secondary, .btn-unpaid {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.modal-btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.modal-btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.modal-btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.modal-btn-secondary:hover {
+    background-color: #545b62;
+}
+
+.btn-unpaid {
+    background-color: #dc3545;
+    color: white;
+    width: 100%;
+}
+
+.btn-unpaid:hover {
+    background-color: #c82333;
+}
+
+.modal-unpaid-section {
+    margin-top: 20px;
+}
+
+.modal-unpaid-section hr {
+    margin: 20px 0;
+    border: none;
+    border-top: 1px solid #ddd;
+}
+
+.modal-unpaid-section p {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 10px;
+}

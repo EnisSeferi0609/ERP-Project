@@ -1,0 +1,363 @@
+/* Form Component Styles */
+
+/* Base Form Styles */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+form div {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #374151;
+  font-size: 0.95rem;
+  letter-spacing: 0.025em;
+}
+
+input, select, textarea {
+  padding: 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background-color: #ffffff;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: #64748b;
+  box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.1);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+/* Fieldsets */
+fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 2rem;
+  background: linear-gradient(135deg, #ffffff, #f8fafc);
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+}
+
+legend {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #374151;
+  padding: 0 1rem;
+  letter-spacing: 0.025em;
+}
+
+/* File Upload Styling */
+.file-input-section {
+    margin: 1rem 0;
+}
+
+.file-info {
+    margin-top: 0.5rem;
+    color: #666;
+}
+
+.file-info small {
+    color: #666;
+}
+
+.files-section {
+    margin-top: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 0.5rem;
+    background-color: #f9f9f9;
+}
+
+.section-title {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: #333;
+}
+
+.file-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.25rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.file-item:last-child {
+    border-bottom: none;
+}
+
+.file-name {
+    flex: 1;
+    margin-right: 0.5rem;
+}
+
+.file-size {
+    color: #666;
+    font-size: 0.9em;
+    margin-right: 0.5rem;
+}
+
+.remove-file-btn,
+.delete-file-btn {
+    background: #ff4444;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    transition: all 0.2s;
+    opacity: 0.7;
+    padding: 0.25rem;
+}
+
+.remove-file-btn:hover,
+.delete-file-btn:hover {
+    background: #cc0000;
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+/* Custom File Input */
+.custom-file-input {
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    transition: all 0.2s;
+    padding: 1.5rem;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.custom-file-input:hover {
+    border-color: #007bff;
+    background-color: #e3f2fd;
+    transform: translateY(-1px);
+}
+
+.file-input-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.upload-icon {
+    font-size: 2rem;
+}
+
+.upload-text {
+    text-align: center;
+}
+
+.upload-text > div:first-child {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.25rem;
+}
+
+.file-types {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+/* Form Sections */
+.form-section {
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    border: 1px solid #dee2e6;
+}
+
+.form-section h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 200px;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+.form-group textarea {
+    width: 100%;
+    max-width: 400px;
+}
+
+/* Cost Input Wrapper */
+.cost-input-wrapper {
+    position: relative;
+    display: inline-block;
+    width: auto;
+}
+
+.cost-input-wrapper input {
+    width: 120px;
+    padding: 0.75rem 2.5rem 0.75rem 0.75rem;
+    border: 2px solid #dee2e6;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.cost-input-wrapper input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.currency {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-weight: 600;
+    color: #666;
+    font-size: 1rem;
+    pointer-events: none;
+}
+
+/* Form Actions */
+.form-actions {
+    text-align: center;
+    margin-top: 2rem;
+}
+
+/* Date Input Styling */
+.date-input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-size: 16px;
+    margin-bottom: 20px;
+    box-sizing: border-box;
+}
+
+.date-input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+}
+
+/* Cost Date Section */
+.cost-date-section {
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 5px;
+    margin-bottom: 2rem;
+    border: 1px solid #dee2e6;
+}
+
+.cost-date-section h3 {
+    margin-top: 0;
+    color: #333;
+}
+
+.cost-date-section label {
+    font-weight: 600;
+    color: #555;
+}
+
+/* Work Component Styles */
+.arbeit-komponente {
+    background-color: var(--bg-secondary, #f8f9fa);
+    border: 1px solid var(--border-primary, #dee2e6);
+    border-radius: var(--radius-md, 8px);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: all 0.2s ease;
+}
+
+.arbeit-komponente:hover {
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.1));
+}
+
+/* Calculation Fields */
+.calculation-fields {
+    display: none;
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: var(--bg-primary, #ffffff);
+    border: 1px solid var(--border-secondary, #e9ecef);
+    border-radius: var(--radius-sm, 4px);
+    border-left: 3px solid var(--color-info, #2563eb);
+}
+
+.calculation-fields.active,
+.stunden-fields.active,
+.quadratmeter-fields.active {
+    display: block;
+}
+
+.stunden-fields,
+.quadratmeter-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+/* File Input Components */
+.file-input-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.files-list {
+    margin-top: 1rem;
+    border: 1px solid var(--border-primary, #dee2e6);
+    border-radius: var(--radius-sm, 4px);
+    padding: 0.5rem;
+    background-color: var(--bg-secondary, #f8f9fa);
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.files-list:empty {
+    display: none;
+}
+
+/* Manual Bookings Section */
+.manual-bookings-section {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background-color: var(--bg-secondary, #f8f9fa);
+    border-radius: var(--radius-md, 8px);
+    border: 1px solid var(--border-primary, #dee2e6);
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.1));
+}

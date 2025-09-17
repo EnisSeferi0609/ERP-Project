@@ -10,9 +10,8 @@
 <div class="year-nav-wrapper" style="margin-bottom: 1rem;">
     <div class="year-tabs" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
         {% for yr in available_years %}
-        <a href="/euer?year={{ yr }}{% if view %}&view={{ view }}{% endif %}" 
-           class="year-tab {% if yr == year %}active{% endif %}"
-           style="padding: 0.5rem 1rem; text-decoration: none; background-color: {% if yr == year %}#2563eb{% else %}#f8f9fa{% endif %}; color: {% if yr == year %}white{% else %}#333{% endif %}; border-radius: 4px; border: 1px solid #dee2e6; font-weight: {% if yr == year %}600{% else %}normal{% endif %}; transition: all 0.2s ease;">
+        <a href="/euer?year={{ yr }}{% if view %}&view={{ view }}{% endif %}"
+            class="year-tab {% if yr == year %}active{% endif %}">
             {{ yr }}
         </a>
         {% endfor %}
@@ -22,183 +21,238 @@
 
 <div class="eur-nav-wrapper">
     <nav class="main-nav">
-        <a href="/euer{% if year %}?year={{ year }}{% endif %}" 
-           class="{% if not view or view == 'list' %}active{% endif %}">
+        <a href="/euer{% if year %}?year={{ year }}{% endif %}"
+            class="{% if not view or view == 'list' %}active{% endif %}">
             Buchungsliste
         </a>
-    </nav>
-    <div class="tabs sub-nav">
         <a href="/euer?view=chart{% if year %}&year={{ year }}{% endif %}"
-           class="{% if view == 'chart' %}active{% endif %}">Grafik</a>
+            class="{% if view == 'chart' %}active{% endif %}">Grafik</a>
+        <a href="/euer?view=reports{% if year %}&year={{ year }}{% endif %}"
+            class="{% if view == 'reports' %}active{% endif %}">Jahresabschlüsse</a>
+    </nav>
+    <div class="eur-actions">
+        <a href="/euer/{{ year }}/pdf" class="btn btn-secondary" target="_blank">
+            Download: EÜR-Bericht {{ year }}
+        </a>
     </div>
 </div>
 
-<style>
-.year-tab:hover {
-    background-color: #e9ecef !important;
-    color: #333 !important;
-}
-
-.year-tab.active:hover {
-    background-color: #1e40af !important;
-    color: white !important;
-}
-
-.eur-nav-wrapper {
-    margin-bottom: 2rem;
-}
-
-.main-nav {
-    background-color: #e3e8ef;
-    padding: 0.5rem 1rem;
-    display: flex;
-    gap: 1.5rem;
-    border-radius: 6px;
-    margin-bottom: 0.5rem;
-    box-shadow: 0 2px 6px rgba(0,0,0,.04);
-}
-
-.main-nav a {
-    color: #2563eb;
-    text-decoration: none;
-    font-weight: 600;
-    padding: .5rem 1rem;
-    border-radius: 6px;
-    transition: background-color .2s ease;
-    font-size: 1.05rem;
-}
-
-.main-nav a:hover {
-    background-color: #dbeafe;
-    color: #1e40af;
-}
-
-.main-nav a.active {
-    background-color: #2563eb;
-    color: #fff;
-    font-weight: bold;
-}
-
-.sub-nav {
-    margin-left: 1.5rem;
-    border-left: 3px solid #e3e8ef;
-    padding-left: 0.5rem;
-}
-
-.sub-nav a {
-    display: inline-block;
-    padding: 0.5rem 1rem;
-    text-decoration: none;
-    color: #666;
-    border-radius: 4px;
-    margin-right: 1rem;
-    font-size: 0.9rem;
-}
-
-.sub-nav a:hover {
-    background-color: #f0f0f0;
-    color: #333;
-}
-
-.sub-nav a.active {
-    background-color: #2563eb;
-    color: white;
-}
-</style>
 
 {% if not view or view == 'list' %}
-<!-- Invoice-related entries grouped by invoice -->
-{% for rechnung_id, group in grouped_entries.items() %}
-<div class="invoice-group" style="margin-bottom: 2rem; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
-    <div class="invoice-header" style="background-color: #f8f9fa; padding: 1rem; border-bottom: 1px solid #ddd;">
-        <h3 style="margin: 0; font-size: 1.1rem; color: #333;">
-            Rechnung #{{ group.rechnung.id }} 
-            {% if group.rechnung.kunde %}
-                - {% if group.rechnung.kunde.kundenart == "Privatkunde" %}
-                    {{ group.rechnung.kunde.kunde_nachname }} {{ group.rechnung.kunde.kunde_vorname }}
-                {% else %}
-                    {{ group.rechnung.kunde.ansprechpartner_nachname }} {{ group.rechnung.kunde.ansprechpartner_vorname }}
-                    {% if group.rechnung.kunde.kunde_firmenname %}
-                        ({{ group.rechnung.kunde.kunde_firmenname }})
-                    {% endif %}
-                {% endif %}
-            {% endif %}
-        </h3>
-        <p style="margin: 0.5rem 0 0 0; color: #666; font-size: 0.9rem;">
-            Rechnungsdatum: {{ group.rechnung.rechnungsdatum.strftime('%d.%m.%Y') if group.rechnung.rechnungsdatum else 'N/A' }} |
-            Gesamtbetrag: {{ "{:,.2f}".format(group.rechnung.rechnungssumme_gesamt) }} €
-        </p>
+<!-- Summary statistics at the top -->
+<div class="kennzahlen"
+    style="margin-bottom: 2rem; background-color: #f8f9fa; padding: 1.5rem; border-radius: 8px; border: 1px solid #dee2e6;">
+    <h3 style="margin: 0 0 1rem 0; color: #333;">Zusammenfassung {{ year }}</h3>
+    <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+        <div>
+            <strong>Gesamteinnahmen:</strong>
+            <span style="color: #28a745; font-size: 1.1rem; font-weight: 600;">{{ einnahmen_summe|german_decimal }}
+                €</span>
+        </div>
+        <div>
+            <strong>Gesamtausgaben:</strong>
+            <span style="color: #dc3545; font-size: 1.1rem; font-weight: 600;">{{ ausgaben_summe|german_decimal }}
+                €</span>
+        </div>
+        <div>
+            <strong>Saldo:</strong>
+            <span style="color: {{ '#28a745' if saldo >= 0 else '#dc3545' }}; font-size: 1.2rem; font-weight: bold;">
+                {{ saldo|german_decimal }} €
+            </span>
+        </div>
     </div>
-    
-    <table style="margin: 0; width: 100%;">
-        <thead style="background-color: #f1f3f5;">
-            <tr>
-                <th style="padding: 0.8rem; text-align: left;">Datum</th>
-                <th style="padding: 0.8rem; text-align: left;">Typ</th>
-                <th style="padding: 0.8rem; text-align: right;">Betrag</th>
-                <th style="padding: 0.8rem; text-align: left;">Beschreibung</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for entry in group.entries %}
-            <tr style="{% if entry.typ.lower() == 'einnahme' %}background-color: #f0f8f0;{% else %}background-color: #fff5f5;{% endif %}">
-                <td style="padding: 0.8rem;">{{ entry.datum.strftime('%d.%m.%Y') }}</td>
-                <td style="padding: 0.8rem;">
-                    <span style="{% if entry.typ.lower() == 'einnahme' %}color: #28a745; font-weight: 600;{% else %}color: #dc3545; font-weight: 600;{% endif %}">
-                        {{ entry.typ|title }}
-                    </span>
-                </td>
-                <td style="padding: 0.8rem; text-align: right; font-weight: 600;">
-                    {% if entry.typ.lower() == 'einnahme' %}+{% else %}-{% endif %}{{ "{:,.2f}".format(entry.betrag) }} €
-                </td>
-                <td style="padding: 0.8rem;">{{ entry.beschreibung }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
 </div>
-{% endfor %}
 
-<!-- Manual entries (not linked to invoices) -->
-{% if manual_entries %}
-<div class="manual-entries-group" style="margin-bottom: 2rem; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
-    <div class="manual-header" style="background-color: #fff3cd; padding: 1rem; border-bottom: 1px solid #ddd;">
-        <h3 style="margin: 0; font-size: 1.1rem; color: #333;">
-            Manuelle Buchungen
-        </h3>
-        <p style="margin: 0.5rem 0 0 0; color: #666; font-size: 0.9rem;">
-            Einzelne Einträge ohne Rechnungsbezug
-        </p>
+<!-- Expand/Collapse Controls -->
+<div style="margin-bottom: 1rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
+    <button onclick="expandAll()" class="btn btn-primary btn-sm">
+        Alle aufklappen
+    </button>
+    <button onclick="collapseAll()" class="btn btn-secondary btn-sm">
+        Alle zuklappen
+    </button>
+</div>
+
+<!-- Timeline with mixed invoice groups and manual entries -->
+{% for item in timeline_items %}
+{% if item.type == 'invoice_group' %}
+{% set group = item.data %}
+{% set einnahmen_rechnung = group.entries | selectattr('typ', 'equalto', 'einnahme') | list %}
+{% set ausgaben_rechnung = group.entries | selectattr('typ', 'equalto', 'ausgabe') | list %}
+{% set einnahmen_summe_rechnung = einnahmen_rechnung | map(attribute='betrag') | sum %}
+{% set ausgaben_summe_rechnung = ausgaben_rechnung | map(attribute='betrag') | sum %}
+{% set saldo_rechnung = einnahmen_summe_rechnung - ausgaben_summe_rechnung %}
+
+<div class="invoice-group-compact"
+    style="margin-bottom: 1.5rem; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
+    <!-- Clickable Compact Header -->
+    <div class="invoice-header-compact collapsible-header"
+        onclick="toggleInvoiceDetails('invoice-{{ group.rechnung.id }}')"
+        style="background-color: #f8f9fa; padding: 0.75rem 1rem; border-bottom: 1px solid #ddd; cursor: pointer; transition: background-color 0.2s ease;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span class="collapse-icon" id="icon-invoice-{{ group.rechnung.id }}"
+                    style="font-size: 0.8rem; color: #666; transition: transform 0.2s ease;">▼</span>
+                <div>
+                    <h4 style="margin: 0; font-size: 1rem; color: #333;">
+                        Rechnung #{{ group.rechnung.id }}
+                        {% if group.rechnung.kunde %}
+                        - {% if group.rechnung.kunde.kundenart == "Privatkunde" %}
+                        {{ group.rechnung.kunde.kunde_nachname }} {{ group.rechnung.kunde.kunde_vorname }}
+                        {% else %}
+                        {{ group.rechnung.kunde.ansprechpartner_nachname }} {{
+                        group.rechnung.kunde.ansprechpartner_vorname }}
+                        {% endif %}
+                        {% endif %}
+                    </h4>
+                    <small style="color: #666;">Rechnungsdatum: {{ group.rechnung.rechnungsdatum.strftime('%d.%m.%Y') if
+                        group.rechnung.rechnungsdatum else 'N/A' }}</small>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div style="text-align: right;">
+                    <div
+                        style="color: {{ '#28a745' if saldo_rechnung >= 0 else '#dc3545' }}; font-weight: bold; font-size: 1.1rem;">
+                        Saldo: {{ saldo_rechnung|german_decimal }} €
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    
-    <table style="margin: 0; width: 100%;">
-        <thead style="background-color: #f1f3f5;">
-            <tr>
-                <th style="padding: 0.8rem; text-align: left;">Datum</th>
-                <th style="padding: 0.8rem; text-align: left;">Typ</th>
-                <th style="padding: 0.8rem; text-align: right;">Betrag</th>
-                <th style="padding: 0.8rem; text-align: left;">Beschreibung</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for entry in manual_entries %}
-            <tr style="{% if entry.typ.lower() == 'einnahme' %}background-color: #f0f8f0;{% else %}background-color: #fff5f5;{% endif %}">
-                <td style="padding: 0.8rem;">{{ entry.datum.strftime('%d.%m.%Y') }}</td>
-                <td style="padding: 0.8rem;">
-                    <span style="{% if entry.typ.lower() == 'einnahme' %}color: #28a745; font-weight: 600;{% else %}color: #dc3545; font-weight: 600;{% endif %}">
-                        {{ entry.typ|title }}
-                    </span>
-                </td>
-                <td style="padding: 0.8rem; text-align: right; font-weight: 600;">
-                    {% if entry.typ.lower() == 'einnahme' %}+{% else %}-{% endif %}{{ "{:,.2f}".format(entry.betrag) }} €
-                </td>
-                <td style="padding: 0.8rem;">{{ entry.beschreibung }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+
+    <!-- Collapsible Side-by-side Income/Expense Layout -->
+    <div id="details-invoice-{{ group.rechnung.id }}" class="entries-container collapsible-content"
+        style="display: none;">
+        <!-- Einnahmen Column -->
+        <div class="einnahmen-column">
+            <h5
+                style="margin: 0 0 0.5rem 0; color: #28a745; font-size: 0.9rem; font-weight: 600; display: flex; align-items: center;">
+                <span
+                    style="width: 8px; height: 8px; background-color: #28a745; border-radius: 50%; margin-right: 0.5rem;"></span>
+                Einnahmen ({{ einnahmen_rechnung|length }})
+            </h5>
+            {% if einnahmen_rechnung %}
+            <div class="entries-list">
+                {% for entry in einnahmen_rechnung %}
+                <div class="entry-compact"
+                    style="background-color: #f0f8f0; padding: 0.5rem; border-radius: 4px; margin-bottom: 0.3rem; border-left: 3px solid #28a745;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="flex: 1;">
+                            <div style="font-size: 0.9rem; color: #333;">{{ entry.beschreibung or 'Rechnung #' +
+                                group.rechnung.id|string }}</div>
+                            <small style="color: #666;">Buchungsdatum: {{ entry.datum.strftime('%d.%m.%Y') }}</small>
+                        </div>
+                        <div style="font-weight: 600; color: #28a745;">+{{ entry.betrag|german_decimal }} €</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div style="color: #666; font-style: italic; font-size: 0.9rem;">Keine Einnahmen</div>
+            {% endif %}
+        </div>
+
+        <!-- Ausgaben Column -->
+        <div class="ausgaben-column">
+            <h5
+                style="margin: 0 0 0.5rem 0; color: #dc3545; font-size: 0.9rem; font-weight: 600; display: flex; align-items: center;">
+                <span
+                    style="width: 8px; height: 8px; background-color: #dc3545; border-radius: 50%; margin-right: 0.5rem;"></span>
+                Ausgaben ({{ ausgaben_rechnung|length }})
+            </h5>
+            {% if ausgaben_rechnung %}
+            <div class="entries-list">
+                {% for entry in ausgaben_rechnung %}
+                <div class="entry-compact"
+                    style="background-color: #fff5f5; padding: 0.5rem; border-radius: 4px; margin-bottom: 0.3rem; border-left: 3px solid #dc3545;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="flex: 1;">
+                            <div style="font-size: 0.9rem; color: #333;">{{ entry.beschreibung or 'Materialkosten' }}
+                            </div>
+                            <small style="color: #666;">Buchungsdatum: {{ entry.datum.strftime('%d.%m.%Y') }}</small>
+                        </div>
+                        <div style="font-weight: 600; color: #dc3545;">-{{ entry.betrag|german_decimal }} €</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div style="color: #666; font-style: italic; font-size: 0.9rem;">Keine Ausgaben</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Summary Row for Invoice -->
+    <div
+        style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background-color: #f8f9fa; border-top: 1px solid #e9ecef; font-weight: 600;">
+        <div style="color: #28a745;">Einnahmen: {{ einnahmen_summe_rechnung|german_decimal }} €</div>
+        <div style="color: #dc3545;">Ausgaben: {{ ausgaben_summe_rechnung|german_decimal }} €</div>
+    </div>
+</div>
+
+{% elif item.type == 'manual_entry' %}
+{% set entry = item.data %}
+
+<div class="manual-entry-simple"
+    style="margin-bottom: 1.5rem; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
+    <div
+        style="background-color: #f8f9fa; padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <div>
+                <h4 style="margin: 0; font-size: 1rem; color: #333;">{{ entry.beschreibung or 'Manuelle Buchung' }}</h4>
+                <small style="color: #666;">{{ entry.datum.strftime('%d.%m.%Y') }}</small>
+            </div>
+        </div>
+        <div style="text-align: right;">
+            <div
+                style="color: {{ '#28a745' if entry.typ == 'einnahme' else '#dc3545' }}; font-weight: bold; font-size: 1.1rem;">
+                {{ '+' if entry.typ == 'einnahme' else '-' }}{{ entry.betrag|german_decimal }} €
+            </div>
+            <small style="color: #666;">{{ 'Einnahme' if entry.typ == 'einnahme' else 'Ausgabe' }}</small>
+        </div>
+    </div>
 </div>
 {% endif %}
+{% endfor %}
+
+{% endif %}
+
+{% if view == 'reports' %}
+<!-- Reports View -->
+<div class="table-responsive">
+    <table class="table table-hover table-striped">
+        <thead>
+            <tr>
+                <th>Jahr</th>
+                <th>Einnahmen</th>
+                <th>Ausgaben</th>
+                <th>Saldo</th>
+                <th>Aktionen</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for report_year in available_years %}
+            {% set year_data = reports_data.get(report_year, {}) %}
+            <tr>
+                <td><strong>{{ report_year }}</strong></td>
+                <td style="color: #28a745; font-weight: 600;">{{ year_data.einnahmen|german_decimal }} €</td>
+                <td style="color: #dc3545; font-weight: 600;">{{ year_data.ausgaben|german_decimal }} €</td>
+                <td style="color: {{ '#28a745' if year_data.saldo >= 0 else '#dc3545' }}; font-weight: bold;">
+                    {{ year_data.saldo|german_decimal }} €
+                </td>
+                <td>
+                    <div class="table-actions">
+                        <button onclick="window.location.href='/euer/{{ report_year }}/pdf'" class="action-btn">PDF
+                            Download</button>
+                        <button onclick="window.location.href='/euer?year={{ report_year }}'" class="action-btn">Details
+                            anzeigen</button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endif %}
 
 {% if view == 'chart' %}
@@ -208,26 +262,6 @@
 </div>
 {% endif %}
 
-<!-- Always show summary statistics -->
-<div class="kennzahlen" style="margin-top: 2rem; background-color: #f8f9fa; padding: 1.5rem; border-radius: 8px; border: 1px solid #dee2e6;">
-    <h3 style="margin: 0 0 1rem 0; color: #333;">Zusammenfassung {{ year }}</h3>
-    <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
-        <div>
-            <strong>Gesamteinnahmen:</strong>
-            <span style="color: #28a745; font-size: 1.1rem; font-weight: 600;">{{ "{:,.2f}".format(einnahmen_summe) }} €</span>
-        </div>
-        <div>
-            <strong>Gesamtausgaben:</strong>
-            <span style="color: #dc3545; font-size: 1.1rem; font-weight: 600;">{{ "{:,.2f}".format(ausgaben_summe) }} €</span>
-        </div>
-        <div>
-            <strong>Saldo:</strong>
-            <span style="color: {{ '#28a745' if saldo >= 0 else '#dc3545' }}; font-size: 1.2rem; font-weight: bold;">
-                {{ "{:,.2f}".format(saldo) }} €
-            </span>
-        </div>
-    </div>
-</div>
 
 {% if view == 'chart' %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -236,54 +270,92 @@
     const chart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: {{ labels|tojson }},
-            datasets: [
-                {
-                    label: 'Einnahmen',
-                    data: {{ daten_einnahmen|tojson }},
-                    backgroundColor: '#28a745',
-                    borderColor: '#1e7e34',
-                    borderWidth: 1
+            labels: {{ labels| tojson }},
+    datasets: [
+        {
+            label: 'Einnahmen',
+            data: {{ daten_einnahmen| tojson }},
+        backgroundColor: '#28a745',
+        borderColor: '#1e7e34',
+        borderWidth: 1
                 },
-                {
-                    label: 'Ausgaben',
-                    data: {{ daten_ausgaben|tojson }},
-                    backgroundColor: '#dc3545',
-                    borderColor: '#bd2130',
-                    borderWidth: 1
+        {
+            label: 'Ausgaben',
+            data: {{ daten_ausgaben| tojson }},
+        backgroundColor: '#dc3545',
+        borderColor: '#bd2130',
+        borderWidth: 1
                 }
-            ]
+    ]
         },
-        options: {
-            responsive: true,
+    options: {
+        responsive: true,
             plugins: {
-                title: {
-                    display: true,
+            title: {
+                display: true,
                     text: 'Einnahmen und Ausgaben über Zeit'
-                },
-                legend: {
-                    display: true,
+            },
+            legend: {
+                display: true,
                     position: 'top'
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                    ticks: {
+                    callback: function(value) {
+                        return value.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
+                    }
                 }
             },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return value.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
-                        }
-                    }
-                },
-                x: {
-                    title: {
-                        display: true,
+            x: {
+                title: {
+                    display: true,
                         text: 'Monat'
-                    }
                 }
             }
         }
+    }
     });
 </script>
 {% endif %}
+
+<!-- Collapsible functionality JavaScript -->
+<script>
+    function toggleInvoiceDetails(elementId) {
+        const detailsElement = document.getElementById('details-' + elementId);
+        const iconElement = document.getElementById('icon-' + elementId);
+
+        if (detailsElement.style.display === 'none' || detailsElement.style.display === '') {
+            // Expand
+            detailsElement.style.display = 'grid';
+            iconElement.classList.add('expanded');
+        } else {
+            // Collapse
+            detailsElement.style.display = 'none';
+            iconElement.classList.remove('expanded');
+        }
+    }
+
+    // Add expand/collapse all functionality
+    function expandAll() {
+        document.querySelectorAll('.collapsible-content').forEach(element => {
+            element.style.display = 'grid';
+        });
+        document.querySelectorAll('.collapse-icon').forEach(icon => {
+            icon.classList.add('expanded');
+        });
+    }
+
+    function collapseAll() {
+        document.querySelectorAll('.collapsible-content').forEach(element => {
+            element.style.display = 'none';
+        });
+        document.querySelectorAll('.collapse-icon').forEach(icon => {
+            icon.classList.remove('expanded');
+        });
+    }
+</script>
+
 {% endblock %}

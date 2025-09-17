@@ -1,54 +1,68 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard{% endblock %}
+{% block title %}BuildFlow - Startseite{% endblock %}
 
 {% block content %}
-<h2>Dashboard</h2>
-Funktionalität hinzufügen: rechnungen sortieren nach Kunden oder einfach chronologisch
-<div style="width: 100%; max-width: 800px; margin-bottom: 3rem;">
-  <canvas id="umsatzChart"></canvas>
+<div class="welcome-section">
+  <div class="welcome-header">
+    <div class="welcome-text">
+      <h1>Willkommen bei BuildFlow!</h1>
+      <p class="lead">Das ERP-System für Ihren Handwerksbetrieb</p>
+    </div>
+    <img src="/static/logo.png" alt="BuildFlow Logo" class="company-logo">
+  </div>
 </div>
 
-<div style="width: 100%; max-width: 800px;">
-  <canvas id="stundenChart"></canvas>
+<div class="workflow-guide">
+  <h3>Arbeitsablauf - So nutzen Sie das System:</h3>
+
+  <div class="workflow-steps">
+    <div class="step">
+      <div class="step-number">1</div>
+      <div class="step-content">
+        <h4>Kunden anlegen</h4>
+        <p>Erfassen Sie Ihre Kundendaten mit allen wichtigen Kontaktinformationen.</p>
+        <a href="/kunde" class="workflow-btn">Kunden anlegen</a>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-number">2</div>
+      <div class="step-content">
+        <h4>Aufträge erstellen</h4>
+        <p>Legen Sie Aufträge an, fügen Sie Material- und Arbeitskomponenten hinzu.</p>
+        <a href="/auftrag" class="workflow-btn">Auftrag erstellen</a>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-number">3</div>
+      <div class="step-content">
+        <h4>Rechnungen generieren</h4>
+        <p>Erstellen Sie automatisch Rechnungen aus Ihren Aufträgen.</p>
+        <a href="/rechnung" class="workflow-btn">Rechnung erstellen</a>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-number">4</div>
+      <div class="step-content">
+        <h4>Rechnung als bezahlt markieren</h4>
+        <p>Markieren Sie Rechnungen als bezahlt und geben Sie Materialkosten mit Belegen ein.</p>
+        <a href="/rechnungsliste" class="workflow-btn">Rechnungen verwalten</a>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-number">5</div>
+      <div class="step-content">
+        <h4>Buchhaltung führen</h4>
+        <p>Verwalten Sie Einnahmen und Ausgaben für die Einnahmen-Überschuss-Rechnung.</p>
+        <a href="/euer" class="workflow-btn">Buchungsübersicht</a>
+      </div>
+    </div>
+  </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-  const daten = {{ daten | tojson }};
-  console.log(daten);
 
-  function filterKategorie(alle, kategorie) {
-    return alle
-      .filter(e => e.kategorie === kategorie)
-      .sort((a, b) => new Date(a.datum) - new Date(b.datum));
-  }
-
-  function buildDataset(eintraege, label, farbe) {
-    return {
-      labels: eintraege.map(e => e.datum),
-      datasets: [{
-        label: label,
-        data: eintraege.map(e => e.wert),
-        borderColor: farbe,
-        backgroundColor: farbe,
-        fill: false,
-        tension: 0.3
-      }]
-    };
-  }
-
-  const umsatz = filterKategorie(daten, "Umsatz");
-  const stunden = filterKategorie(daten, "Arbeitsstunden");
-
-  new Chart(document.getElementById("umsatzChart"), {
-    type: "line",
-    data: buildDataset(umsatz, "Umsatz (EUR)", "#3b82f6")
-  });
-
-  new Chart(document.getElementById("stundenChart"), {
-    type: "bar",
-    data: buildDataset(stunden, "Arbeitsstunden", "#10b981")
-  });
-</script>
 {% endblock %}

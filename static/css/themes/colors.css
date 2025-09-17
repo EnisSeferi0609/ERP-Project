@@ -1,0 +1,96 @@
+/* CSS Variables and Color Theme */
+:root {
+  /* Primary Colors */
+  --color-primary: #475569;
+  --color-primary-hover: #334155;
+  --color-primary-light: #64748b;
+  --color-primary-dark: #1e293b;
+
+  /* Secondary Colors */
+  --color-secondary: #6c757d;
+  --color-secondary-hover: #5a6268;
+  --color-secondary-light: #adb5bd;
+
+  /* State Colors */
+  --color-success: #58af6c;
+  --color-success-hover: #5b9768;
+  --color-success-light: #d4edda;
+
+  --color-danger: #dc3545;
+  --color-danger-hover: #c82333;
+  --color-danger-light: #f8d7da;
+
+  --color-warning: #ffc107;
+  --color-warning-hover: #e0a800;
+  --color-warning-light: #fff3cd;
+
+  --color-info: #2563eb;
+  --color-info-hover: #1d4ed8;
+  --color-info-light: #dbeafe;
+
+  /* Neutral Colors */
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+
+  /* Background Colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #f1f3f4;
+  --bg-sidebar: #2c3e50;
+  --bg-card: #ffffff;
+  --bg-overlay: rgba(0, 0, 0, 0.5);
+
+  /* Text Colors */
+  --text-primary: #212529;
+  --text-secondary: #495057;
+  --text-muted: #6c757d;
+  --text-light: #adb5bd;
+  --text-white: #ffffff;
+
+  /* Border Colors */
+  --border-primary: #dee2e6;
+  --border-secondary: #e9ecef;
+  --border-light: #f8f9fa;
+  --border-dark: #495057;
+
+  /* Shadow Colors */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1);
+
+  /* ERP Specific Colors */
+  --color-invoice: #007bff;
+  --color-invoice-hover: #0056b3;
+  --color-customer: #17a2b8;
+  --color-customer-hover: #138496;
+  --color-order: #6f42c1;
+  --color-order-hover: #5a359a;
+  --color-accounting: #fd7e14;
+  --color-accounting-hover: #e56a0f;
+
+  /* Status Colors */
+  --color-status-open: #ffc107;
+  --color-status-paid: #28a745;
+  --color-status-overdue: #dc3545;
+  --color-status-draft: #6c757d;
+
+  /* Print Colors (for PDF invoices) */
+  --color-print-primary: #1a2b45;
+  --color-print-secondary: #34495e;
+  --color-print-accent: #2c3e50;
+  --color-print-muted: #7f8c8d;
+  --color-print-border: #bdc3c7;
+  --color-print-table-header: #ecf0f1;
+  --color-print-table-row: #f9f9f9;
+}

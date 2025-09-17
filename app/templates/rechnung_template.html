@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <style>
+    /* PDF Invoice Print Styles - Must be inline for PDF generation */
     body {
       font-family: Georgia, 'Times New Roman', serif;
     }
@@ -29,6 +30,9 @@
       width: 48%;
       line-height: 1.5;
     }
+    .absender strong {
+      font-weight: 700;
+    }
     h1 {
       font-size: 22pt;
       color: #1a2b45;
@@ -37,7 +41,7 @@
       padding-left: 10px;
     }
     h3 {
-      font-size: 14pt; /* kleiner als h2 */
+      font-size: 14pt;
       color: #1a2b45;
       margin-top: 30px;
       margin-bottom: 10px;
@@ -49,6 +53,7 @@
       border-collapse: collapse;
       margin-top: 10px;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      table-layout: fixed;
     }
     th, td {
       padding: 12px 15px;
@@ -62,6 +67,46 @@
     }
     tr:nth-child(even) {
       background-color: #f9f9f9;
+    }
+    /* Fixed column widths for work table */
+    .work-table th:nth-child(1), .work-table td:nth-child(1) { width: 18%; } /* Datum */
+    .work-table th:nth-child(2), .work-table td:nth-child(2) { width: 15%; } /* Tätigkeit */
+    .work-table th:nth-child(3), .work-table td:nth-child(3) { width: 20%; } /* Beschreibung */
+    .work-table th:nth-child(4), .work-table td:nth-child(4) { width: 10%; } /* Menge */
+    .work-table th:nth-child(5), .work-table td:nth-child(5) { width: 10%; } /* Einheit */
+    .work-table th:nth-child(6), .work-table td:nth-child(6) { width: 12%; } /* Preis */
+    .work-table th:nth-child(7), .work-table td:nth-child(7) { width: 15%; } /* Gesamt */
+    /* Fixed column widths for material table */
+    .material-table th:nth-child(1), .material-table td:nth-child(1) { width: 35%; } /* Bezeichnung */
+    .material-table th:nth-child(2), .material-table td:nth-child(2) { width: 15%; } /* Anzahl */
+    .material-table th:nth-child(3), .material-table td:nth-child(3) { width: 15%; } /* Einheit */
+    .material-table th:nth-child(4), .material-table td:nth-child(4) { width: 17%; } /* Preis pro Einheit */
+    .material-table th:nth-child(5), .material-table td:nth-child(5) { width: 18%; } /* Gesamt */
+    /* Prevent line breaks in specific columns */
+    .work-table td:nth-child(4), /* Menge */
+    .work-table td:nth-child(5), /* Einheit */
+    .work-table td:nth-child(6), /* Preis */
+    .work-table td:nth-child(7), /* Gesamt */
+    .material-table td:nth-child(2), /* Anzahl */
+    .material-table td:nth-child(3), /* Einheit */
+    .material-table td:nth-child(4), /* Preis pro Einheit */
+    .material-table td:nth-child(5) { /* Gesamt */
+      white-space: nowrap;
+    }
+    /* Date column - allow manual breaks but prevent overflow */
+    .work-table td:nth-child(1) { /* Datum */
+      white-space: normal;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      hyphens: none;
+    }
+    /* Allow text wrapping only for specific columns */
+    .work-table td:nth-child(2), /* Tätigkeit */
+    .work-table td:nth-child(3), /* Beschreibung */
+    .material-table td:nth-child(1) { /* Bezeichnung */
+      white-space: normal;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
     .summe-sektion {
       margin-top: 15px;
@@ -88,8 +133,11 @@
       padding-top: 15px;
       line-height: 1.6;
     }
-    .absender strong {
-      font-weight: 700;
+    .nowrap-euro {
+      white-space: nowrap;
+    }
+    td:nth-child(6), td:nth-child(7), td:nth-child(4):has-text("€") {
+      white-space: nowrap;
     }
   </style>
 </head>
@@ -126,14 +174,16 @@
 <strong>Auftrag:</strong> {{ auftrag.beschreibung }}</p>
 
 <h3>Arbeit</h3>
-<table>
+<table class="work-table">
   <thead>
     <tr>
       <th>Datum</th>
       <th>Tätigkeit</th>
-      <th>Stunden</th>
-      <th>Stundenlohn (€)</th>
-      <th>Gesamt (€)</th>
+      <th>Beschreibung</th>
+      <th>Menge</th>
+      <th>Einheit</th>
+      <th>Preis</th>
+      <th>Gesamt</th>
     </tr>
   </thead>
   <tbody>
@@ -141,7 +191,7 @@
     <tr>
       <td>
         {% if k.komponente_start and k.komponente_ende %}
-          {{ k.komponente_start.strftime("%d.%m.%Y") }} – {{ k.komponente_ende.strftime("%d.%m.%Y") }}
+          {{ k.komponente_start.strftime("%d.%m.%Y") }}&nbsp;–<br>{{ k.komponente_ende.strftime("%d.%m.%Y") }}
         {% elif k.komponente_start %}
           {{ k.komponente_start.strftime("%d.%m.%Y") }}
         {% elif k.komponente_ende %}
@@ -151,9 +201,23 @@
         {% endif %}
       </td>
       <td>{{ k.arbeit }}</td>
-      <td>{{ (k.anzahl_stunden or 0)|german_decimal(1) }}</td>
-      <td>{{ (k.stundenlohn or 0)|german_decimal }}</td>
-      <td>{{ ((k.anzahl_stunden or 0) * (k.stundenlohn or 0))|german_decimal }}</td>
+      <td>{{ k.beschreibung or "-" }}</td>
+      {% if k.berechnungsbasis == "stunden" %}
+        <td>{{ (k.anzahl_stunden or 0)|german_decimal(1) }}</td>
+        <td>Stunden</td>
+        <td>{{ (k.stundenlohn or 0)|german_decimal }} €</td>
+        <td>{{ ((k.anzahl_stunden or 0) * (k.stundenlohn or 0))|german_decimal }} €</td>
+      {% elif k.berechnungsbasis == "quadratmeter" %}
+        <td>{{ (k.anzahl_quadrat or 0)|german_decimal(1) }}</td>
+        <td>m²</td>
+        <td>{{ (k.preis_pro_quadrat or 0)|german_decimal }} €</td>
+        <td>{{ ((k.anzahl_quadrat or 0) * (k.preis_pro_quadrat or 0))|german_decimal }} €</td>
+      {% else %}
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+        <td>0,00 €</td>
+      {% endif %}
     </tr>
     {% endfor %}
   </tbody>
@@ -162,14 +226,14 @@
 
 {% if materialien %}
 <h3>Material / Sonstiges</h3>
-<table>
+<table class="material-table">
   <thead>
     <tr>
       <th>Bezeichnung</th>
       <th>Anzahl</th>
       <th>Einheit</th>
-      <th>Preis pro Einheit (€)</th>
-      <th>Gesamt (€)</th>
+      <th>Preis pro Einheit</th>
+      <th>Gesamt</th>
     </tr>
   </thead>
   <tbody>
@@ -178,8 +242,8 @@
       <td>{{ m.bezeichnung }}</td>
       <td>{{ (m.anzahl or 1)|german_decimal(1) }}</td>
       <td>{{ m.berechnungseinheit or "-" }}</td>
-      <td>{{ (m.preis_pro_einheit or 0)|german_decimal }}</td>
-      <td>{{ ((m.anzahl or 1) * (m.preis_pro_einheit or 0))|german_decimal }}</td>
+      <td>{{ (m.preis_pro_einheit or 0)|german_decimal }} €</td>
+      <td>{{ ((m.anzahl or 1) * (m.preis_pro_einheit or 0))|german_decimal }} €</td>
     </tr>
     {% endfor %}
   </tbody>
@@ -192,7 +256,9 @@
 </div>
 
 <div class="footer">
-  <p>{{ rechnung.rechtlicher_hinweis }}</p>
+  {% if unternehmensdaten.rechtliche_informationen %}
+  <p>{{ unternehmensdaten.rechtliche_informationen }}</p>
+  {% endif %}
   <p>
     Zahlung an: {{ unternehmensdaten.zahlungsinfo_name }}<br>
     Bank: {{ unternehmensdaten.zahlungsinfo_bank_name }}<br>

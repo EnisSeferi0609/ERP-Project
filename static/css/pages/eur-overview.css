@@ -1,0 +1,229 @@
+/* EUR Overview Page Styles */
+
+.eur-nav-wrapper {
+    margin-bottom: 2rem;
+}
+
+/* Simple plain text navigation - no special design */
+.eur-nav-wrapper .main-nav {
+    background: none !important;
+    background-color: transparent !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+.eur-nav-wrapper .main-nav a {
+    background-color: transparent;
+    border-radius: 0;
+    padding: 0;
+    margin-right: 2rem;
+    border: none;
+    text-decoration: none;
+    color: inherit;
+    font-weight: normal;
+}
+
+.eur-nav-wrapper .main-nav a:hover {
+    background-color: transparent;
+    color: inherit;
+}
+
+.eur-nav-wrapper .main-nav a.active {
+    background-color: transparent;
+    color: inherit;
+    font-weight: bold;
+}
+
+.receipt-link {
+    color: #2563eb;
+    text-decoration: none;
+    font-size: 0.9rem;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    border: 1px solid #e3e8ef;
+    background-color: #f8f9fa;
+    display: inline-block;
+    margin: 0.1rem;
+}
+
+.receipt-link:hover {
+    background-color: #e3e8ef;
+    color: #1e40af;
+}
+
+/* Compact Layout Styles */
+.entries-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    padding: 1rem;
+}
+
+@media (max-width: 768px) {
+    .entries-container {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+}
+
+.entry-compact {
+    transition: all 0.2s ease;
+}
+
+.entry-compact:hover {
+    background-color: #f8f9fa !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.invoice-group-compact,
+.manual-entries-group-compact {
+    transition: all 0.2s ease;
+}
+
+.invoice-group-compact:hover,
+.manual-entries-group-compact:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.collapsible-header {
+    transition: background-color 0.2s ease;
+}
+
+.collapsible-header:hover {
+    background-color: #e9ecef !important;
+}
+
+.collapsible-content {
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.collapse-icon {
+    transition: transform 0.2s ease;
+}
+
+.collapse-icon.expanded {
+    transform: rotate(-90deg);
+}
+
+/* Summary Statistics */
+.kennzahlen {
+    margin-bottom: 2rem;
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.kennzahlen h3 {
+    margin: 0 0 1rem 0;
+    color: #333;
+}
+
+.kennzahlen > div {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.kennzahlen strong {
+    font-weight: 600;
+}
+
+/* Invoice Groups */
+.invoice-group-compact {
+    margin-bottom: 1.5rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.invoice-header-compact {
+    background-color: #f8f9fa;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #ddd;
+    cursor: pointer;
+}
+
+.invoice-header-compact h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: #333;
+}
+
+.invoice-header-compact small {
+    color: #666;
+}
+
+/* Manual Entry Simple */
+.manual-entry-simple {
+    margin-bottom: 1.5rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.manual-entry-simple h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: #333;
+}
+
+.manual-entry-simple small {
+    color: #666;
+}
+
+/* Entry Lists */
+.entries-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.entry-compact {
+    padding: 0.5rem;
+    border-radius: 4px;
+    margin-bottom: 0.3rem;
+}
+
+/* Column Headers */
+.einnahmen-column h5,
+.ausgaben-column h5 {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+}
+
+.einnahmen-column h5 {
+    color: #28a745;
+}
+
+.ausgaben-column h5 {
+    color: #dc3545;
+}
+
+.einnahmen-column h5 span,
+.ausgaben-column h5 span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+}
+
+.einnahmen-column h5 span {
+    background-color: #28a745;
+}
+
+.ausgaben-column h5 span {
+    background-color: #dc3545;
+}
+
+/* Chart View */
+.chart-view {
+    margin-top: 2rem;
+}

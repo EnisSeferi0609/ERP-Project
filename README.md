@@ -1,31 +1,44 @@
-# ERP System for Construction Businesses
+# BuildFlow ERP System
 
-This project is a custom ERP system specifically developed for small businesses. It manages customers, orders, materials, labor, and invoices through a web interface. It contains fictional company data.
+BuildFlow is a comprehensive ERP system specifically designed for construction and handcraft businesses. It streamlines business operations from customer management to accounting with an intuitive web interface and guided workflow.
 
 ## Features
 
-- **Customer Management**  
-  Create, edit, and delete private and commercial customers
+- **Customer Management**
+  Create and manage private and commercial customers with complete contact information
 
-- **Order Management**  
-  Create and link orders including address data and status
+- **Order Management**
+  Create detailed orders with material and labor components, track project addresses and status
 
-- **Material & Labor Components**  
-  Record material usage and labor effort per order
+- **Invoice Generation**
+  Automatic PDF invoice creation from orders with professional formatting
 
-- **Invoices**  
-  Automatic invoice generation with PDF export
+- **Payment Tracking**
+  Mark invoices as paid, set payment dates, and track receipt uploads for materials
 
-- **Dashboard & Statistics**  
-  Overview of revenue, orders, and key business metrics (in progress)
+- **Expense Management**
+  Record material costs with receipt uploads and manual booking entries
+
+- **Accounting (EÜR)**
+  Complete German tax-compliant income-expense calculation with PDF reports, timeline view, and yearly comparisons
+
+- **Dashboard & Analytics**
+  Business overview with revenue tracking and key performance metrics
+
+- **Guided Workflow**
+  Step-by-step process guidance from customer creation to bookkeeping
 
 ## Technology Stack
 
-- **Python** & **FastAPI** – Backend logic and API routing  
-- **Jinja2** – Templating for HTML  
-- **SQLite** – Local database
-- **SQLAlchemy** – ORM for database access  
-- **HTML/CSS** – User interface
+- **Backend**: Python with FastAPI framework
+- **Database**: SQLite with SQLAlchemy ORM
+- **Frontend**: HTML/CSS with Jinja2 templating
+- **PDF Generation**: wkhtmltopdf for invoices and reports
+- **File Handling**: Receipt uploads and document management
+- **Architecture**: Component-based CSS structure with modular design
+- **Testing**: pytest with automated test suite
+- **Monitoring**: Health checks and structured logging
+- **Production**: Error handling, environment configuration
 
 ## Local Setup
 ### With Conda (recommended)
@@ -83,3 +96,27 @@ This project is a custom ERP system specifically developed for small businesses.
    ```bash
    http://127.0.0.1:8000
    ```
+
+## Testing
+
+Run the test suite to verify everything works:
+
+```bash
+python -m pytest tests/ -v
+```
+
+## Health Monitoring
+
+Check application health:
+
+```bash
+curl http://127.0.0.1:8000/health
+```
+
+## Documentation
+
+- **API Documentation**: Generate with `cd doc && make html` (requires Sphinx)
+- **Database Schema**: View with `sqlite3 erp.db ".schema"`
+- **ER Diagram**: `er_diagram.pdf`
+- **API Health Check**: `/health` endpoint
+- **Logs**: Check `logs/buildflow.log` for application logs

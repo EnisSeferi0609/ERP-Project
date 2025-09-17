@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Integer, String
+"""Company data and business information models."""
+
+from sqlalchemy import Column, Integer, String, Text
 from sqlalchemy.orm import relationship
 from database.db import Base
 
@@ -19,6 +21,8 @@ class Unternehmensdaten(Base):
     zahlungsinfo_bank_name = Column(String)
     zahlungsinfo_iban = Column(String)
     zahlungsinfo_paypal = Column(String)
+
+    rechtliche_informationen = Column(Text)
 
     # Beziehung zu Rechnungen (1:n)
     rechnungen = relationship("Rechnung", back_populates="unternehmensdaten")

@@ -1,0 +1,416 @@
+/* Table Component Styles */
+
+/* Base Table Styles */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--spacing-2, 0.5rem) 0;
+  background-color: var(--bg-primary, #fff);
+  border-radius: var(--radius-sm, 4px);
+  overflow: hidden;
+  box-shadow: none;
+}
+
+th, td {
+  padding: var(--spacing-2, 0.5rem) var(--spacing-3, 0.75rem);
+  text-align: left;
+  border-bottom: 1px solid var(--border-primary, #dee2e6);
+  vertical-align: top;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  font-size: var(--text-sm, 0.875rem);
+}
+
+th {
+  background-color: var(--bg-secondary, #f8f9fa);
+  font-weight: var(--font-semibold, 600);
+  color: var(--text-primary, #495057);
+  font-size: var(--text-xs, 0.75rem);
+  text-transform: none;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+tbody tr:hover {
+  background-color: var(--bg-tertiary, #f1f3f4);
+}
+
+tbody tr:nth-child(even) {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Table Layout Control */
+.table-fixed {
+  table-layout: fixed;
+}
+
+.table-auto {
+  table-layout: auto;
+}
+
+/* Allow tables to exceed page width with horizontal scroll */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-responsive table {
+  min-width: max-content;
+  white-space: nowrap;
+}
+
+/* Table Size Variants */
+.table-sm th,
+.table-sm td {
+  padding: var(--spacing-2, 0.5rem) var(--spacing-3, 0.75rem);
+  font-size: var(--text-sm, 0.875rem);
+}
+
+.table-lg th,
+.table-lg td {
+  padding: var(--spacing-4, 1rem) var(--spacing-6, 1.5rem);
+  font-size: var(--text-base, 1rem);
+}
+
+/* Column Width Classes */
+.col-xs { width: 5%; }
+.col-sm { width: 10%; }
+.col-md { width: 15%; }
+.col-lg { width: 20%; }
+.col-xl { width: 25%; }
+.col-auto { width: auto; }
+
+/* Text Wrapping Control */
+.text-nowrap {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.text-wrap {
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Specific Table Types */
+
+/* Customer List Table */
+.customers-table {
+  table-layout: auto;
+}
+
+/* Invoice List Table */
+.invoices-table {
+  table-layout: fixed;
+  min-width: 1200px;
+}
+
+.invoices-table th:nth-child(1),
+.invoices-table td:nth-child(1) { width: 15%; } /* Customer */
+.invoices-table th:nth-child(2),
+.invoices-table td:nth-child(2) { width: 8%; } /* Order ID */
+.invoices-table th:nth-child(3),
+.invoices-table td:nth-child(3) { width: 10%; } /* Invoice Date */
+.invoices-table th:nth-child(4),
+.invoices-table td:nth-child(4) { width: 10%; } /* Amount */
+.invoices-table th:nth-child(5),
+.invoices-table td:nth-child(5) { width: 8%; } /* Status */
+.invoices-table th:nth-child(6),
+.invoices-table td:nth-child(6) { width: 10%; } /* Material Costs */
+.invoices-table th:nth-child(7),
+.invoices-table td:nth-child(7) { width: 15%; } /* Material Receipts */
+.invoices-table th:nth-child(8),
+.invoices-table td:nth-child(8) { width: 10%; } /* Payment Date */
+.invoices-table th:nth-child(9),
+.invoices-table td:nth-child(9) { width: 20%; } /* Actions */
+
+/* Invoice table content handling */
+.invoices-table td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.invoices-table .action-buttons {
+  white-space: normal;
+  justify-content: stretch;
+  align-items: stretch;
+}
+
+.invoices-table td:nth-child(7) {
+  white-space: normal; /* Allow wrapping for receipts */
+}
+
+.invoices-table td:nth-child(1) {
+  white-space: normal; /* Allow wrapping for customer names */
+}
+
+/* Orders Table */
+.orders-table {
+  table-layout: fixed;
+}
+
+.orders-table th:nth-child(1),
+.orders-table td:nth-child(1) { width: 10%; } /* Order ID */
+.orders-table th:nth-child(2),
+.orders-table td:nth-child(2) { width: 25%; } /* Customer */
+.orders-table th:nth-child(3),
+.orders-table td:nth-child(3) { width: 30%; } /* Description */
+.orders-table th:nth-child(4),
+.orders-table td:nth-child(4) { width: 15%; } /* Date */
+.orders-table th:nth-child(5),
+.orders-table td:nth-child(5) { width: 20%; } /* Actions */
+
+/* Accounting Table */
+.accounting-table {
+  table-layout: fixed;
+}
+
+.accounting-table th:nth-child(1),
+.accounting-table td:nth-child(1) { width: 12%; } /* Date */
+.accounting-table th:nth-child(2),
+.accounting-table td:nth-child(2) { width: 20%; } /* Description */
+.accounting-table th:nth-child(3),
+.accounting-table td:nth-child(3) { width: 15%; } /* Category */
+.accounting-table th:nth-child(4),
+.accounting-table td:nth-child(4) { width: 13%; } /* Income */
+.accounting-table th:nth-child(5),
+.accounting-table td:nth-child(5) { width: 13%; } /* Expense */
+.accounting-table th:nth-child(6),
+.accounting-table td:nth-child(6) { width: 12%; } /* Type */
+.accounting-table th:nth-child(7),
+.accounting-table td:nth-child(7) { width: 15%; } /* Actions */
+
+/* Dashboard Tables */
+.dashboard-table {
+  table-layout: fixed;
+}
+
+.dashboard-table th:nth-child(1),
+.dashboard-table td:nth-child(1) { width: 40%; } /* Description */
+.dashboard-table th:nth-child(2),
+.dashboard-table td:nth-child(2) { width: 20%; } /* Value */
+.dashboard-table th:nth-child(3),
+.dashboard-table td:nth-child(3) { width: 20%; } /* Change */
+.dashboard-table th:nth-child(4),
+.dashboard-table td:nth-child(4) { width: 20%; } /* Actions */
+
+/* Manual Bookings Table */
+.manual-bookings-table {
+  table-layout: auto;
+  width: 100%;
+  min-width: unset !important;
+}
+
+.manual-bookings-table th,
+.manual-bookings-table td {
+  white-space: normal !important;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.manual-bookings-table th:nth-child(1),
+.manual-bookings-table td:nth-child(1) { width: 12%; } /* Datum */
+.manual-bookings-table th:nth-child(2),
+.manual-bookings-table td:nth-child(2) { width: 10%; } /* Typ */
+.manual-bookings-table th:nth-child(3),
+.manual-bookings-table td:nth-child(3) { width: 15%; } /* Betrag */
+.manual-bookings-table th:nth-child(4),
+.manual-bookings-table td:nth-child(4) { width: 25%; } /* Beschreibung */
+.manual-bookings-table th:nth-child(5),
+.manual-bookings-table td:nth-child(5) { width: 15%; } /* Kategorie */
+.manual-bookings-table th:nth-child(6),
+.manual-bookings-table td:nth-child(6) { width: 13%; } /* Belege */
+.manual-bookings-table th:nth-child(7),
+.manual-bookings-table td:nth-child(7) { width: 10%; } /* Aktionen */
+
+/* Column Content Types */
+.currency-cell,
+table .currency {
+  text-align: right;
+  font-family: inherit;
+  font-weight: inherit;
+  white-space: nowrap;
+  position: static !important;
+  transform: none !important;
+}
+
+.date-cell {
+  white-space: nowrap;
+  font-family: 'Courier New', monospace;
+}
+
+.status-cell {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.actions-cell {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.description-cell {
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  /* Removed max-width: 0 that was causing width issues */
+}
+
+/* Status Badges in Tables */
+.status-badge {
+  display: inline-block;
+  padding: var(--spacing-1, 0.25rem) var(--spacing-2, 0.5rem);
+  border-radius: var(--radius-sm, 4px);
+  font-size: var(--text-xs, 0.75rem);
+  font-weight: var(--font-medium, 500);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: none;
+  outline: none;
+  box-shadow: none;
+}
+
+.status-badge.open {
+  background-color: var(--color-warning-light, #fff3cd);
+  color: var(--color-warning, #ffc107);
+}
+
+.status-badge.paid {
+  background-color: var(--color-success-light, #d4edda);
+  color: var(--color-success, #28a745);
+}
+
+.status-badge.overdue {
+  background-color: var(--color-danger-light, #f8d7da);
+  color: var(--color-danger, #dc3545);
+}
+
+.status-badge.draft {
+  background-color: var(--color-gray-200, #e5e7eb);
+  color: var(--color-gray-600, #4b5563);
+}
+
+/* Table Actions */
+.table-actions,
+.action-buttons {
+  display: flex;
+  gap: var(--spacing-2, 0.5rem);
+  align-items: center;
+  justify-content: center;
+}
+
+.action-buttons {
+  flex-direction: column;
+  gap: 2px;
+  white-space: normal;
+  width: 100%;
+}
+
+.table-actions .btn,
+.action-btn {
+  padding: var(--spacing-1, 0.25rem) var(--spacing-2, 0.5rem);
+  font-size: var(--text-xs, 0.75rem);
+}
+
+.action-btn {
+  font-size: 11px;
+  padding: 3px 6px;
+  width: 100%;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+/* Responsive Tables */
+@media (max-width: 768px) {
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .table-responsive table {
+    min-width: 600px;
+  }
+  
+  th, td {
+    padding: var(--spacing-2, 0.5rem);
+    font-size: var(--text-sm, 0.875rem);
+  }
+  
+  .table-actions {
+    flex-direction: column;
+    gap: var(--spacing-1, 0.25rem);
+  }
+}
+
+/* Empty State */
+.table-empty {
+  text-align: center;
+  padding: var(--spacing-12, 3rem) var(--spacing-4, 1rem);
+  color: var(--text-muted, #6c757d);
+}
+
+.table-empty h3 {
+  margin-bottom: var(--spacing-2, 0.5rem);
+  color: var(--text-secondary, #495057);
+}
+
+/* Loading State */
+.table-loading {
+  text-align: center;
+  padding: var(--spacing-8, 2rem);
+  color: var(--text-muted, #6c757d);
+}
+
+/* Table with Sticky Header */
+.table-sticky thead th {
+  position: sticky;
+  top: 0;
+  background-color: var(--bg-secondary, #f8f9fa);
+  z-index: 10;
+}
+
+/* Border Variants */
+.table-bordered {
+  border: 1px solid var(--border-primary, #dee2e6);
+}
+
+.table-bordered th,
+.table-bordered td {
+  border: 1px solid var(--border-primary, #dee2e6);
+}
+
+.table-borderless th,
+.table-borderless td {
+  border: none;
+}
+
+/* Striped Tables */
+.table-striped tbody tr:nth-child(odd) {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Hover Effect */
+.table-hover tbody tr:hover {
+  background-color: var(--bg-tertiary, #f1f3f4);
+}
+
+/* Dark Theme (if needed) */
+.table-dark {
+  background-color: var(--color-gray-800, #1f2937);
+  color: var(--color-white, #ffffff);
+}
+
+.table-dark th,
+.table-dark td {
+  border-color: var(--color-gray-700, #374151);
+}
+
+.table-dark thead th {
+  background-color: var(--color-gray-900, #111827);
+}

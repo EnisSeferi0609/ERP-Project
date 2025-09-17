@@ -16,11 +16,21 @@ venv/
 .idea/
 
 .DS_Store
+**/.DS_Store
 Thumbs.db
 
 *.log
 *.pid
 *.sqlite-journal
+
+# Receipt uploads
+receipts/
+rechnungen/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
 
 doc/build/
 **/build/

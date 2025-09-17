@@ -1,6 +1,4 @@
-# create_db.py
 from database.db import Base, engine, SessionLocal
-# Modelle müssen importiert sein, damit create_all die Tabellen kennt
 from app.models.kunde import Kunde  # noqa: F401
 from app.models.rechnung import Rechnung  # noqa: F401
 from app.models.auftrag import Auftrag  # noqa: F401

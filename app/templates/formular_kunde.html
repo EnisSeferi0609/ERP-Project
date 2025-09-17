@@ -6,6 +6,14 @@
 
 <h2>Kundenformular</h2>
 
+<!-- Error Message Display -->
+{% if error_message %}
+<div style="background-color: #fee; border: 1px solid #fcc; padding: 1rem; margin-bottom: 1rem; border-radius: 4px;">
+    <strong>⚠️ Fehler:</strong>
+    {{ error_message|safe }}
+</div>
+{% endif %}
+
 <form method="post" action="/kunden" id="kundenFormular">
     <fieldset>
         <legend>Allgemein</legend>
@@ -38,8 +46,8 @@
             <label for="kundenart">Kundenart:</label>
             <select name="kundenart" id="kundenart" onchange="toggleFields()">
                 <option value="">Bitte wählen</option>
-                <option value="Privatkunde">Privatkunde</option>
-                <option value="Gewerbekunde">Gewerbekunde</option>
+                <option value="Privatkunde" {% if form_data and form_data.kundenart == 'Privatkunde' %}selected{% endif %}>Privatkunde</option>
+                <option value="Gewerbekunde" {% if form_data and form_data.kundenart == 'Gewerbekunde' %}selected{% endif %}>Gewerbekunde</option>
             </select>
         </div>
     </fieldset>
@@ -47,51 +55,81 @@
     <fieldset id="gewerbefelder" class="hidden">
         <legend>Gewerbekunde</legend>
         <label for="kunde_firmenname">Firmenname:</label>
-        <input type="text" name="kunde_firmenname" id="kunde_firmenname">
+        <input type="text" name="kunde_firmenname" id="kunde_firmenname" value="{{ form_data.kunde_firmenname if form_data else '' }}">
 
         <label for="kunde_gesellschaftsform">Gesellschaftsform:</label>
-        <input type="text" name="kunde_gesellschaftsform" id="kunde_gesellschaftsform">
+        <input type="text" name="kunde_gesellschaftsform" id="kunde_gesellschaftsform" value="{{ form_data.kunde_gesellschaftsform if form_data else '' }}">
 
         <label for="ansprechpartner_vorname">Ansprechpartner Vorname:</label>
-        <input type="text" name="ansprechpartner_vorname" id="ansprechpartner_vorname">
+        <input type="text" name="ansprechpartner_vorname" id="ansprechpartner_vorname" value="{{ form_data.ansprechpartner_vorname if form_data else '' }}">
 
         <label for="ansprechpartner_nachname">Ansprechpartner Nachname:</label>
-        <input type="text" name="ansprechpartner_nachname" id="ansprechpartner_nachname">
+        <input type="text" name="ansprechpartner_nachname" id="ansprechpartner_nachname" value="{{ form_data.ansprechpartner_nachname if form_data else '' }}">
     </fieldset>
 
     <fieldset id="privatfelder" class="hidden">
         <legend>Privatkunde</legend>
         <label for="kunde_vorname">Vorname:</label>
-        <input type="text" name="kunde_vorname" id="kunde_vorname">
+        <input type="text" name="kunde_vorname" id="kunde_vorname" value="{{ form_data.kunde_vorname if form_data else '' }}">
 
         <label for="kunde_nachname">Nachname:</label>
-        <input type="text" name="kunde_nachname" id="kunde_nachname">
+        <input type="text" name="kunde_nachname" id="kunde_nachname" value="{{ form_data.kunde_nachname if form_data else '' }}">
     </fieldset>
 
     <fieldset id="gemeinsameFelder" class="hidden">
         <legend>Kontaktdaten & Adresse</legend>
 
         <label for="kunde_rechnungsadresse">Rechnungsadresse:</label>
-        <input type="text" name="kunde_rechnungsadresse" id="kunde_rechnungsadresse">
+        <input type="text" name="kunde_rechnungsadresse" id="kunde_rechnungsadresse" value="{{ form_data.kunde_rechnungsadresse if form_data else '' }}">
 
         <label for="kunde_rechnung_plz">Rechnung PLZ:</label>
-        <input type="text" name="kunde_rechnung_plz" id="kunde_rechnung_plz">
+        <input type="text" name="kunde_rechnung_plz" id="kunde_rechnung_plz" value="{{ form_data.kunde_rechnung_plz if form_data else '' }}">
 
         <label for="kunde_rechnung_ort">Rechnung Ort:</label>
-        <input type="text" name="kunde_rechnung_ort" id="kunde_rechnung_ort">
+        <input type="text" name="kunde_rechnung_ort" id="kunde_rechnung_ort" value="{{ form_data.kunde_rechnung_ort if form_data else '' }}">
 
         <label for="kunde_email">E-Mail:</label>
-        <input type="email" name="kunde_email" id="kunde_email">
+        <input type="email" name="kunde_email" id="kunde_email" value="{{ form_data.kunde_email if form_data else '' }}">
 
         <label for="kunde_telefon">Telefon:</label>
-        <input type="text" name="kunde_telefon" id="kunde_telefon">
+        <input type="text" name="kunde_telefon" id="kunde_telefon" value="{{ form_data.kunde_telefon if form_data else '' }}">
 
         <label for="notizen">Notizen:</label>
-        <textarea name="notizen" id="notizen"></textarea>
+        <textarea name="notizen" id="notizen">{{ form_data.notizen if form_data else '' }}</textarea>
+
+        <label for="kunde_seit">Kunde seit:</label>
+        <input type="date" name="kunde_seit" id="kunde_seit" value="{{ form_data.kunde_seit if form_data else '' }}" required>
     </fieldset>
 
-    <button type="submit">Speichern</button>
+    <button type="submit" class="btn btn-success">Speichern</button>
 </form>
+
+<!-- BuildFlow Workflow Navigation -->
+<div class="workflow-navigation">
+    <h3>Nächster Schritt im BuildFlow</h3>
+    <div class="next-step-card">
+        <div class="step-info">
+            <div class="step-number">2</div>
+            <div class="step-details">
+                <h4>Auftrag erstellen</h4>
+                <p>Legen Sie jetzt einen neuen Auftrag für diesen Kunden an</p>
+            </div>
+        </div>
+        <a href="/auftrag" class="workflow-btn">
+            <span>→ Auftrag erstellen</span>
+        </a>
+    </div>
+    
+    <div class="workflow-overview">
+        <span>Workflow: </span>
+        <span class="completed">✓ Kunde anlegen</span>
+        <span class="next">→ Auftrag erstellen</span>
+        <span class="pending">→ Rechnung generieren</span>
+        <span class="pending">→ Rechnung als bezahlt markieren</span>
+        <span class="pending">→ Buchhaltung</span>
+    </div>
+</div>
+
 
 <script>
     function handleBestehend() {
@@ -127,10 +165,12 @@
             gewerbe.classList.remove("hidden");
             privat.classList.add("hidden");
             gemeinsame.classList.remove("hidden");
+            setTodaysDateIfEmpty();
         } else if (art === "Privatkunde") {
             privat.classList.remove("hidden");
             gewerbe.classList.add("hidden");
             gemeinsame.classList.remove("hidden");
+            setTodaysDateIfEmpty();
         } else {
             hideAllKundeFelder();
         }
@@ -166,7 +206,8 @@
                     "kunde_rechnung_ort": data.kunde_rechnung_ort,
                     "kunde_email": data.kunde_email,
                     "kunde_telefon": data.kunde_telefon,
-                    "notizen": data.notizen
+                    "notizen": data.notizen,
+                    "kunde_seit": data.kunde_seit
                 };
 
                 for (const feld in feldMap) {
@@ -175,6 +216,35 @@
                 }
             });
     }
+
+    // Set today's date as default for kunde_seit date
+    function setTodaysDateIfEmpty() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        const todayString = `${year}-${month}-${day}`;
+        
+        const dateField = document.getElementById('kunde_seit');
+        if (dateField && !dateField.value) {
+            dateField.value = todayString;
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        setTodaysDateIfEmpty();
+
+        // Restore form state after validation errors
+        {% if form_data %}
+        // If there's form data from validation error, restore the form state
+        if ("{{ form_data.kundenart }}") {
+            document.getElementById("bestehend").value = "nein";
+            handleBestehend();
+            document.getElementById("kundenart").value = "{{ form_data.kundenart }}";
+            toggleFields();
+        }
+        {% endif %}
+    });
 </script>
 
 {% endblock %}

@@ -1,0 +1,162 @@
+/* Material Components CSS */
+
+.rechnung-info {
+    background-color: #f5f5f5;
+    padding: 1rem;
+    border-radius: 5px;
+    margin-bottom: 2rem;
+}
+
+.material-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.material-card {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.material-header {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.material-header h4 {
+    margin: 0 0 0.5rem 0;
+    color: #333;
+    font-size: 1.1rem;
+}
+
+.material-summary {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.material-body {
+    padding: 1.5rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+@media (max-width: 768px) {
+    .material-body {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+}
+
+.cost-input-section,
+.file-input-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.cost-input-section label,
+.file-input-section label {
+    font-weight: 600;
+    color: #333;
+    font-size: 0.9rem;
+}
+
+/* File Management */
+.current-file,
+.receipt-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem;
+    background-color: white;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+
+.current-file:last-child,
+.receipt-item:last-child {
+    margin-bottom: 0;
+}
+
+.pending-file {
+    background-color: #f8f9fa;
+    border: 1px solid #007bff !important;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.7; }
+    50% { opacity: 1; }
+    100% { opacity: 0.7; }
+}
+
+.file-link,
+.receipt-link {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.file-link:hover,
+.receipt-link:hover {
+    text-decoration: underline;
+}
+
+.file-icon {
+    font-size: 1.5rem;
+}
+
+/* Receipt Management */
+.existing-receipts {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background-color: white;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+}
+
+.existing-receipts h4 {
+    margin: 0 0 0.75rem 0;
+    color: #333;
+    font-size: 0.95rem;
+}
+
+.receipt-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* File Upload Section */
+.file-upload-section {
+    margin-top: 1rem;
+}
+
+/* Selected Files Display */
+#selected-files {
+    font-size: 0.9rem;
+    color: #666;
+    margin-top: 1rem;
+}
+
+.selected-file {
+    padding: 0.5rem;
+    background-color: #e3f2fd;
+    border: 1px solid #007bff;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+
+#selected-files h4 {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+    color: #333;
+    font-size: 0.95rem;
+}

@@ -1,4 +1,4 @@
-"""Datenmodell für Kunden (Privat- und Geschäftskunden)."""
+"""Customer data models for private and business customers."""
 
 
 from sqlalchemy import Column, Integer, String, Date, Text
@@ -7,6 +7,11 @@ from database.db import Base
 
 
 class Kunde(Base):
+    """Customer model for private and business customers.
+
+    Supports both private customers (Privatkunden) and business customers (Gewerbekunden)
+    with conditional fields based on customer type.
+    """
     __tablename__ = "kunde"
 
     id = Column(Integer, primary_key=True)
@@ -26,7 +31,6 @@ class Kunde(Base):
     notizen = Column(Text)
     kunde_seit = Column(Date)
 
-    # Beziehungen
     rechnungen = relationship("Rechnung", back_populates="kunde")
     auftraege = relationship(
         "Auftrag",

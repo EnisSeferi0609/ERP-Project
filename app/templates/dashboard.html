@@ -1,0 +1,320 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - BuildFlow{% endblock %}
+
+{% block content %}
+<h2>Dashboard - Unternehmensübersicht</h2>
+
+<!-- Year Navigation -->
+{% if available_years|length > 1 %}
+<div class="year-nav-wrapper" style="margin-bottom: 2rem;">
+    <div class="year-tabs" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        {% for yr in available_years %}
+        <a href="/dashboard?year={{ yr }}" 
+           class="year-tab {% if yr == current_year %}active{% endif %}">
+            {{ yr }}
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Key Performance Indicators -->
+<div class="kpi-grid">
+    <div class="kpi-card revenue">
+        <div class="kpi-content">
+            <h3>{{ year_revenue|german_decimal }} €</h3>
+            <p>Umsatz {{ current_year }}</p>
+        </div>
+    </div>
+    
+    <div class="kpi-card expenses">
+        <div class="kpi-content">
+            <h3>{{ year_expenses|german_decimal }} €</h3>
+            <p>Ausgaben {{ current_year }}</p>
+        </div>
+    </div>
+    
+    <div class="kpi-card profit {% if year_profit >= 0 %}positive{% else %}negative{% endif %}">
+        <div class="kpi-content">
+            <h3>{{ year_profit|german_decimal }} €</h3>
+            <p>Gewinn {{ current_year }}</p>
+        </div>
+    </div>
+    
+    <div class="kpi-card customers">
+        <div class="kpi-content">
+            <h3>{{ total_customers }}</h3>
+            <p>Kunden gesamt</p>
+            <small>{{ private_customers }} Privat, {{ business_customers }} Geschäft</small>
+        </div>
+    </div>
+    
+    <div class="kpi-card orders">
+        <div class="kpi-content">
+            <h3>{{ current_year_orders }}</h3>
+            <p>Aufträge {{ current_year }}</p>
+            <small>{{ total_orders }} gesamt</small>
+        </div>
+    </div>
+    
+    <div class="kpi-card invoices">
+        <div class="kpi-content">
+            <h3>{{ paid_invoices }}/{{ total_invoices }}</h3>
+            <p>Bezahlte Rechnungen</p>
+            <small>{{ unpaid_invoices }} offen</small>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="charts-container">
+    <div class="chart-card">
+        <div class="chart-header">
+            <h3 id="chartTitle">Monatliche Entwicklung {{ current_year }}</h3>
+            <div class="chart-tabs">
+                <button class="chart-tab active" onclick="switchChart('financial')">Finanzen</button>
+                <button class="chart-tab" onclick="switchChart('business')">Geschäft</button>
+            </div>
+        </div>
+        <div class="chart-container">
+            <div id="chartLoading" class="chart-loading">
+                <div class="loading-spinner"></div>
+                <p>Lade Diagramm...</p>
+            </div>
+            <canvas id="monthlyChart" style="display: none;"></canvas>
+            <canvas id="businessChart" style="display: none;"></canvas>
+        </div>
+    </div>
+</div>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+// Global chart variables
+let monthlyChart;
+let businessChart;
+
+// Wait for DOM to load
+document.addEventListener('DOMContentLoaded', function() {
+    // Monthly Revenue/Expense Chart
+    const ctx = document.getElementById('monthlyChart').getContext('2d');
+    
+    monthlyChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ months|tojson }},
+            datasets: [
+                {
+                    label: 'Umsatz',
+                    data: {{ revenue_data|tojson }},
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 3,
+                    pointHoverRadius: 6
+                },
+                {
+                    label: 'Ausgaben',
+                    data: {{ expense_data|tojson }},
+                    borderColor: '#f59e0b',
+                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 3,
+                    pointHoverRadius: 6
+                },
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true,
+                        font: {
+                            size: 12
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: 'white',
+                    bodyColor: 'white',
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    borderWidth: 1,
+                    displayColors: true,
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ' + 
+                                   context.parsed.y.toLocaleString('de-DE', { 
+                                       style: 'currency', 
+                                       currency: 'EUR' 
+                                   });
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)',
+                        lineWidth: 1
+                    },
+                    ticks: {
+                        font: {
+                            size: 11
+                        },
+                        callback: function(value) {
+                            if (value === 0) return '0 €';
+                            if (value < 1000) return value.toFixed(0) + ' €';
+                            return (value/1000).toFixed(1) + 'k €';
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        font: {
+                            size: 11
+                        }
+                    }
+                }
+            },
+            animation: {
+                duration: 800,
+                easing: 'easeInOutQuart',
+                onComplete: function() {
+                    // Hide loading indicator and show chart
+                    document.getElementById('chartLoading').style.display = 'none';
+                    document.getElementById('monthlyChart').style.display = 'block';
+                }
+            }
+        }
+    });
+    
+    // Business Development Chart
+    const businessCtx = document.getElementById('businessChart').getContext('2d');
+    
+    businessChart = new Chart(businessCtx, {
+        type: 'line',
+        data: {
+            labels: {{ months|tojson }},
+            datasets: [
+                {
+                    label: 'Neue Aufträge',
+                    data: {{ orders_data|tojson }},
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 3,
+                    pointHoverRadius: 6
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true,
+                        font: {
+                            size: 12
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: 'white',
+                    bodyColor: 'white',
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    borderWidth: 1,
+                    displayColors: true
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)',
+                        lineWidth: 1
+                    },
+                    ticks: {
+                        font: {
+                            size: 11
+                        },
+                        stepSize: 1
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        font: {
+                            size: 11
+                        }
+                    }
+                }
+            },
+            animation: {
+                duration: 800,
+                easing: 'easeInOutQuart'
+            }
+        }
+    });
+
+    // Show chart immediately if no animation is needed
+    setTimeout(() => {
+        document.getElementById('chartLoading').style.display = 'none';
+        document.getElementById('monthlyChart').style.display = 'block';
+    }, 100);
+});
+
+// Chart switching function
+function switchChart(chartType) {
+    const monthlyCanvas = document.getElementById('monthlyChart');
+    const businessCanvas = document.getElementById('businessChart');
+    const chartTitle = document.getElementById('chartTitle');
+    const tabs = document.querySelectorAll('.chart-tab');
+    
+    // Update tab appearance
+    tabs.forEach(tab => tab.classList.remove('active'));
+    
+    if (chartType === 'financial') {
+        monthlyCanvas.style.display = 'block';
+        businessCanvas.style.display = 'none';
+        chartTitle.textContent = 'Monatliche Entwicklung {{ current_year }}';
+        document.querySelector('.chart-tab[onclick="switchChart(\'financial\')"]').classList.add('active');
+    } else if (chartType === 'business') {
+        monthlyCanvas.style.display = 'none';
+        businessCanvas.style.display = 'block';
+        chartTitle.textContent = 'Geschäftsentwicklung {{ current_year }}';
+        document.querySelector('.chart-tab[onclick="switchChart(\'business\')"]').classList.add('active');
+    }
+}
+</script>
+{% endblock %}

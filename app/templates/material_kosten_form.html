@@ -20,55 +20,95 @@
 </div>
 
 <form action="/rechnung/{{ rechnung.id }}/materialkosten" method="post" enctype="multipart/form-data">
+    <div class="cost-date-section">
+        <h3>Wann sind die Materialkosten angefallen?</h3>
+        <label for="cost_date">Datum der Materialkosten:</label>
+        <input type="date" id="cost_date" name="cost_date" required 
+               value="{{ rechnung.rechnungsdatum.strftime('%Y-%m-%d') if rechnung.rechnungsdatum else '' }}"
+               style="margin-left: 1rem;">
+    </div>
+    
     <h3>Materialien aus dem Auftrag</h3>
     
     {% if materialien %}
-        <table class="material-table">
-            <thead>
-                <tr>
-                    <th>Material</th>
-                    <th>Anzahl</th>
-                    <th>Verkaufspreis (pro Einheit)</th>
-                    <th>Verkaufssumme</th>
-                    <th>Tatsächliche Kosten (gesamt)</th>
-                    <th>Beleg hochladen</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for material in materialien %}
-                <tr>
-                    <td>{{ material.bezeichnung }}</td>
-                    <td>{{ material.anzahl|german_decimal }} {{ material.berechnungseinheit or '' }}</td>
-                    <td>{{ material.preis_pro_einheit|german_decimal }} €</td>
-                    <td>{{ ((material.anzahl or 0) * (material.preis_pro_einheit or 0))|german_decimal }} €</td>
-                    <td>
-                        <input type="number" 
-                               name="actual_cost_{{ material.id }}" 
-                               step="0.01" 
-                               placeholder="Tatsächliche Kosten"
-                               value="{{ material.actual_cost|german_decimal if material.actual_cost else '' }}">
-                        €
-                    </td>
-                    <td>
-                        <input type="file" 
-                               name="receipt_{{ material.id }}" 
-                               accept=".pdf,.jpg,.jpeg,.png">
-                        {% if material.receipt_path %}
-                            <br><small>Bereits hochgeladen: 
-                                <a href="/receipt/{{ material.receipt_path }}" target="_blank">
-                                    {{ material.receipt_path|basename }}
-                                </a>
-                            </small>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="material-cards">
+            {% for material in materialien %}
+            <div class="material-card">
+                <div class="material-header">
+                    <h4>{{ material.bezeichnung }}</h4>
+                    <div class="material-summary">
+                        {{ material.anzahl|german_decimal }} {{ material.berechnungseinheit or '' }} × 
+                        {{ material.preis_pro_einheit|german_decimal }} € = 
+                        <strong>{{ ((material.anzahl or 0) * (material.preis_pro_einheit or 0))|german_decimal }} €</strong>
+                    </div>
+                </div>
+                
+                <div class="material-body">
+                    <div class="cost-input-section">
+                        <label for="actual_cost_{{ material.id }}">Tatsächliche Kosten (gesamt):</label>
+                        <div class="cost-input-wrapper">
+                            <input type="number" 
+                                   id="actual_cost_{{ material.id }}"
+                                   name="actual_cost_{{ material.id }}" 
+                                   step="0.01" 
+                                   placeholder="0,00"
+                                   value="{{ material.actual_cost|german_decimal if material.actual_cost else '' }}">
+                            <span class="currency">€</span>
+                        </div>
+                    </div>
+                    
+                    <div class="file-input-section">
+                        <label for="receipt_{{ material.id }}">Beleg hochladen:</label>
+                        <div class="file-input-wrapper">
+                            <div class="custom-file-input" onclick="document.getElementById('receipt_{{ material.id }}').click()">
+                                <div class="file-input-content">
+                                    <div class="upload-icon">📁</div>
+                                    <div class="upload-text">
+                                        <div>Belege hochladen</div>
+                                        <div class="file-types">PDF, JPG, PNG, GIF, TIFF, BMP (max. 10MB pro Datei)</div>
+                                        <div class="file-types" style="font-size: 0.7rem; margin-top: 0.25rem; opacity: 0.8;">
+                                            Mehrere Dateien gleichzeitig möglich
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="file" 
+                                   id="receipt_{{ material.id }}"
+                                   name="receipt_{{ material.id }}" 
+                                   accept=".pdf,.jpg,.jpeg,.png,.gif,.tiff,.bmp"
+                                   title="Erlaubte Dateitypen: PDF, JPG, PNG, GIF, TIFF, BMP (max. 10MB pro Datei)"
+                                   multiple
+                                   style="display: none;"
+                                   onchange="handleFileSelection(this, {{ material.id }})">
+                            
+                            <div class="file-info">
+                                <div class="files-section">
+                                    {% set receipt_files = material.receipt_path.split(',') if material.receipt_path else [] %}
+                                    <div class="section-title">Belege ({{ receipt_files|length }}):</div>
+                                    {% if receipt_files|length > 0 %}
+                                        {% for receipt_file in receipt_files %}
+                                            <div class="current-file">
+                                                <a href="/receipt/{{ receipt_file.strip() }}" target="_blank" class="file-link">
+                                                    {{ receipt_file.strip()|basename }}
+                                                </a>
+                                                <button type="button" onclick="deleteExistingFile({{ material.id }}, '{{ receipt_file.strip() }}')" class="delete-file-btn" title="Beleg löschen">🗑️</button>
+                                            </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div style="color: #666; font-style: italic; padding: 0.5rem;">Noch keine Belege hochgeladen</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
         
         <div class="form-actions">
-            <button type="submit" class="btn-primary">Materialkosten speichern</button>
-            <a href="/rechnungsliste" class="btn-secondary">Zurück zur Rechnungsliste</a>
+            <button type="submit" class="btn btn-success">Materialkosten speichern</button>
+            <a href="/rechnungsliste" class="btn btn-secondary">Zurück zur Rechnungsliste</a>
         </div>
     {% else %}
         <p>Keine Materialien für diesen Auftrag gefunden.</p>
@@ -76,75 +116,303 @@
     {% endif %}
 </form>
 
-<style>
-.rechnung-info {
-    background-color: #f5f5f5;
-    padding: 1rem;
-    border-radius: 5px;
-    margin-bottom: 2rem;
+
+<script>
+
+// Store files for each material
+const materialFiles = {};
+
+function handleFileSelection(input, materialId) {
+    const newFiles = Array.from(input.files);
+    const filesSection = document.querySelector(`#receipt_${materialId}`).closest('.file-input-section').querySelector('.files-section');
+    const sectionTitle = filesSection.querySelector('.section-title');
+    
+    // Initialize file storage for this material if not exists
+    if (!materialFiles[materialId]) {
+        materialFiles[materialId] = [];
+    }
+    
+    // Add new files to our storage (avoid duplicates by name)
+    newFiles.forEach(file => {
+        const isDuplicate = materialFiles[materialId].some(existingFile => 
+            existingFile.name === file.name && existingFile.size === file.size
+        );
+        if (!isDuplicate) {
+            materialFiles[materialId].push(file);
+        }
+    });
+    
+    // Clear all pending files from display
+    const pendingFiles = filesSection.querySelectorAll('.pending-file');
+    pendingFiles.forEach(file => file.remove());
+    
+    // Remove "no files" message if it exists
+    const noFilesMsg = filesSection.querySelector('div[style*="color: #666"]');
+    if (noFilesMsg) noFilesMsg.remove();
+    
+    // Get current count of saved files
+    const savedFiles = filesSection.querySelectorAll('.current-file:not(.pending-file)');
+    let totalCount = savedFiles.length;
+    
+    // Display all pending files from our storage
+    materialFiles[materialId].forEach((file, index) => {
+        totalCount++;
+        
+        const fileDiv = document.createElement('div');
+        fileDiv.className = 'current-file pending-file';
+        fileDiv.setAttribute('data-file-index', index);
+        
+        const fileName = file.name;
+        const fileSize = (file.size / 1024 / 1024).toFixed(2);
+        
+        fileDiv.innerHTML = `
+            <div class="file-link" style="color: #007bff; text-decoration: none; font-weight: 500;">
+                📎 ${fileName} (${fileSize} MB) - <em>Wird hochgeladen...</em>
+            </div>
+            <button type="button" onclick="removePendingFile(${index}, ${materialId})" class="delete-file-btn" title="Aus Auswahl entfernen" style="opacity: 0.7;">❌</button>
+        `;
+        
+        filesSection.appendChild(fileDiv);
+    });
+    
+    // Update section title
+    sectionTitle.textContent = `Belege (${totalCount}):`;
+    
+    // Update the actual file input with all our stored files
+    updateFileInput(input, materialId);
 }
 
-.material-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 2rem;
+function updateFileInput(input, materialId) {
+    // Unfortunately, we can't directly set FileList on input.files
+    // So we'll use a different approach - create a new DataTransfer object
+    const dt = new DataTransfer();
+    
+    if (materialFiles[materialId]) {
+        materialFiles[materialId].forEach(file => {
+            dt.items.add(file);
+        });
+    }
+    
+    input.files = dt.files;
 }
 
-.material-table th,
-.material-table td {
-    padding: 0.75rem;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
+function removePendingFile(fileIndex, materialId) {
+    const filesSection = document.querySelector(`#receipt_${materialId}`).closest('.file-input-section').querySelector('.files-section');
+    const input = document.getElementById(`receipt_${materialId}`);
+    
+    // Remove file from our storage
+    if (materialFiles[materialId]) {
+        materialFiles[materialId].splice(fileIndex, 1);
+    }
+    
+    // Remove all pending files from display
+    const pendingFiles = filesSection.querySelectorAll('.pending-file');
+    pendingFiles.forEach(file => file.remove());
+    
+    // Re-display remaining pending files
+    const savedFiles = filesSection.querySelectorAll('.current-file:not(.pending-file)');
+    let totalCount = savedFiles.length;
+    
+    if (materialFiles[materialId] && materialFiles[materialId].length > 0) {
+        materialFiles[materialId].forEach((file, index) => {
+            totalCount++;
+            
+            const fileDiv = document.createElement('div');
+            fileDiv.className = 'current-file pending-file';
+            fileDiv.setAttribute('data-file-index', index);
+            
+            const fileName = file.name;
+            const fileSize = (file.size / 1024 / 1024).toFixed(2);
+            
+            fileDiv.innerHTML = `
+                <div class="file-link" style="color: #007bff; text-decoration: none; font-weight: 500;">
+                    📎 ${fileName} (${fileSize} MB) - <em>Wird hochgeladen...</em>
+                </div>
+                <button type="button" onclick="removePendingFile(${index}, ${materialId})" class="delete-file-btn" title="Aus Auswahl entfernen" style="opacity: 0.7;">❌</button>
+            `;
+            
+            filesSection.appendChild(fileDiv);
+        });
+    }
+    
+    // Update section title
+    const sectionTitle = filesSection.querySelector('.section-title');
+    sectionTitle.textContent = `Belege (${totalCount}):`;
+    
+    // Show "no files" message if no files remain
+    if (totalCount === 0) {
+        const noFilesDiv = document.createElement('div');
+        noFilesDiv.style.cssText = 'color: #666; font-style: italic; padding: 0.5rem;';
+        noFilesDiv.textContent = 'Noch keine Belege hochgeladen';
+        filesSection.appendChild(noFilesDiv);
+    }
+    
+    // Update the actual file input
+    updateFileInput(input, materialId);
 }
 
-.material-table th {
-    background-color: #f8f9fa;
-    font-weight: bold;
+async function deleteExistingFile(materialId, fileName) {
+    if (confirm(`Möchten Sie den Beleg "${fileName}" wirklich löschen?`)) {
+        try {
+            // Create form data for the request
+            const formData = new FormData();
+            formData.append('material_id', materialId);
+            formData.append('filename', fileName);
+            
+            // Send AJAX request to delete the file
+            const response = await fetch(window.location.pathname + '/delete-receipt', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            });
+            
+            if (response.ok) {
+                // Find and remove the specific file entry from the UI
+                const fileInputSection = document.querySelector(`#receipt_${materialId}`).closest('.file-input-section');
+                const currentFiles = fileInputSection.querySelectorAll('.current-file');
+                
+                // Find the file entry that matches the filename and remove it
+                currentFiles.forEach(fileDiv => {
+                    const fileLink = fileDiv.querySelector('.file-link');
+                    if (fileLink && fileLink.href.includes(fileName)) {
+                        fileDiv.remove();
+                    }
+                });
+                
+                // Update the section title to reflect the new count (excluding pending files)
+                const remainingFiles = fileInputSection.querySelectorAll('.current-file:not(.pending-file)');
+                const sectionTitle = fileInputSection.querySelector('.section-title');
+                if (sectionTitle) {
+                    sectionTitle.textContent = `Belege (${remainingFiles.length}):`;
+                }
+                
+                // Show "no files" message if no files remain
+                if (remainingFiles.length === 0) {
+                    const filesSection = fileInputSection.querySelector('.files-section');
+                    const noFilesDiv = document.createElement('div');
+                    noFilesDiv.style.cssText = 'color: #666; font-style: italic; padding: 0.5rem;';
+                    noFilesDiv.textContent = 'Noch keine Belege hochgeladen';
+                    filesSection.appendChild(noFilesDiv);
+                }
+                
+                // Show success message
+                showTemporaryMessage(`Beleg "${fileName}" wurde erfolgreich gelöscht.`, 'success');
+            } else {
+                // Show error message
+                showTemporaryMessage('Fehler beim Löschen des Belegs.', 'error');
+            }
+        } catch (error) {
+            console.error('Error deleting file:', error);
+            showTemporaryMessage('Fehler beim Löschen des Belegs.', 'error');
+        }
+    }
 }
 
-.material-table input[type="number"] {
-    width: 120px;
-    padding: 0.25rem;
-    border: 1px solid #ccc;
-    border-radius: 3px;
+function showTemporaryMessage(message, type = 'info') {
+    // Create message element
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `temp-message temp-message-${type}`;
+    messageDiv.textContent = message;
+    messageDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        border-radius: 6px;
+        color: white;
+        font-weight: 500;
+        z-index: 1000;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        animation: slideInRight 0.3s ease-out;
+        background-color: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#007bff'};
+    `;
+    
+    // Add animation keyframes if not already added
+    if (!document.querySelector('#temp-message-styles')) {
+        const style = document.createElement('style');
+        style.id = 'temp-message-styles';
+        style.textContent = `
+            @keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOutRight {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    document.body.appendChild(messageDiv);
+    
+    // Remove message after 3 seconds
+    setTimeout(() => {
+        messageDiv.style.animation = 'slideOutRight 0.3s ease-in forwards';
+        setTimeout(() => {
+            if (messageDiv.parentNode) {
+                messageDiv.parentNode.removeChild(messageDiv);
+            }
+        }, 300);
+    }, 3000);
 }
 
-.material-table input[type="file"] {
-    width: 100%;
-    max-width: 200px;
-}
+// Validate file size on selection and add form protection
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInputs = document.querySelectorAll('input[type="file"]');
+    let hasUnsavedFiles = false;
+    
+    fileInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            const files = Array.from(this.files);
+            let hasValidFiles = false;
+            let totalSize = 0;
+            
+            // Check each file
+            for (let file of files) {
+                totalSize += file.size;
+                if (file.size > 10 * 1024 * 1024) { // 10MB per file
+                    alert(`Datei "${file.name}" ist zu groß! Maximum: 10MB pro Datei`);
+                    this.value = '';
+                    return;
+                }
+                hasValidFiles = true;
+            }
+            
+            // Check total size (reasonable limit for multiple files)
+            if (totalSize > 50 * 1024 * 1024) { // 50MB total
+                const totalSizeMB = (totalSize / 1024 / 1024).toFixed(2);
+                alert(`Gesamtgröße aller Dateien (${totalSizeMB} MB) ist zu groß! Maximum: 50MB gesamt`);
+                this.value = '';
+                return;
+            }
+            
+            // Track that files have been selected
+            if (hasValidFiles) {
+                hasUnsavedFiles = true;
+            }
+        });
+    });
+    
+    // Add form submission handler to reset unsaved files flag
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function() {
+            hasUnsavedFiles = false;
+        });
+    }
+    
+    // Warn before leaving page with unsaved files
+    window.addEventListener('beforeunload', function(e) {
+        if (hasUnsavedFiles) {
+            e.preventDefault();
+            e.returnValue = 'Sie haben nicht gespeicherte Dateien. Möchten Sie die Seite wirklich verlassen?';
+            return e.returnValue;
+        }
+    });
+});
+</script>
 
-.form-actions {
-    text-align: center;
-}
-
-.btn-primary,
-.btn-secondary {
-    display: inline-block;
-    padding: 0.75rem 1.5rem;
-    margin: 0 0.5rem;
-    text-decoration: none;
-    border-radius: 5px;
-    border: none;
-    cursor: pointer;
-}
-
-.btn-primary {
-    background-color: #007bff;
-    color: white;
-}
-
-.btn-secondary {
-    background-color: #6c757d;
-    color: white;
-}
-
-.btn-primary:hover {
-    background-color: #0056b3;
-}
-
-.btn-secondary:hover {
-    background-color: #545b62;
-}
-</style>
 {% endblock %}

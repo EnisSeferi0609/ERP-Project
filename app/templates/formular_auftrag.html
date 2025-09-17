@@ -115,7 +115,7 @@
     <input type="text" name="kunde_leistung_plz" id="kunde_leistung_plz" required>
     <label for="kunde_leistung_ort">Ort:</label>
     <input type="text" name="kunde_leistung_ort" id="kunde_leistung_ort" required>
-    <button type="button" onclick="adresseVonKundeLaden()" style="margin: .5rem 0; display:block;">
+    <button type="button" class="btn btn-secondary btn-sm" onclick="adresseVonKundeLaden()">
       Rechnungsadresse übernehmen
     </button>
   </fieldset>
@@ -130,16 +130,48 @@
       <input type="date" name="komponente_ende[]" required>
       <label>Tätigkeit:</label>
       <input type="text" name="arbeit[]" required>
-      <label>Stunden:</label>
-      <input list="stunden" type="number" step="0.25" min="0.25" name="anzahl_stunden[]" placeholder="z.B. 8,5 oder 8.5" required>
-      <label>Stundenlohn (€):</label>
-      <input list="stundenlohn" type="number" step="0.01" min="1" name="stundenlohn[]" placeholder="z.B. 50,00 oder 50.00" required>
+      
+      <label>Berechnungsbasis:</label>
+      <select name="berechnungsbasis[]" onchange="toggleCalculationFields(this)" required>
+        <option value="">-- Bitte wählen --</option>
+        <option value="stunden">Nach Stunden</option>
+        <option value="quadratmeter">Nach Quadratmetern</option>
+      </select>
+      
+      <fieldset class="calculation-fields stunden-fields" style="display: none;">
+        <legend>Stundenbasierte Abrechnung</legend>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div>
+            <label>Stunden:</label>
+            <input list="stunden" type="number" step="0.25" min="0.25" name="anzahl_stunden[]" placeholder="z.B. 8,5 oder 8.5">
+          </div>
+          <div>
+            <label>Stundenlohn (€):</label>
+            <input list="stundenlohn" type="number" step="0.01" min="1" name="stundenlohn[]" placeholder="z.B. 50,00 oder 50.00">
+          </div>
+        </div>
+      </fieldset>
+      
+      <fieldset class="calculation-fields quadratmeter-fields" style="display: none;">
+        <legend>Flächenbasierte Abrechnung</legend>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div>
+            <label>Quadratmeter:</label>
+            <input type="number" step="0.01" min="0.01" name="anzahl_quadrat[]" placeholder="z.B. 25,5 oder 25.5">
+          </div>
+          <div>
+            <label>Preis pro Quadratmeter (€):</label>
+            <input type="number" step="0.01" min="0.01" name="preis_pro_quadrat[]" placeholder="z.B. 15,00 oder 15.00">
+          </div>
+        </div>
+      </fieldset>
+      
       <label>Beschreibung:</label>
       <textarea name="beschreibung_liste[]"></textarea>
-      <button type="button" class="remove-btn" onclick="this.parentElement.remove()">Entfernen</button>
+      <button type="button" class="btn btn-danger btn-sm" onclick="removeKomponente(this)">Entfernen</button>
     </div>
   </div>
-  <button type="button" onclick="addKomponente()">+ Arbeitseinheit hinzufügen</button>
+  <button type="button" class="btn btn-secondary" onclick="addKomponente()">+ Arbeitseinheit hinzufügen</button>
 
   <hr>
 
@@ -148,19 +180,167 @@
   <div id="material-container">
     <!-- Kein Standard-Material-Eintrag mehr -->
   </div>
-  <button type="button" onclick="addMaterial()">+ Material hinzufügen</button>
+  <button type="button" class="btn btn-secondary" onclick="addMaterial()">+ Material hinzufügen</button>
 
   <br><br>
-  <button type="submit">Auftrag speichern</button>
+  <button type="submit" class="btn btn-success">Auftrag speichern</button>
 </form>
 
+<!-- BuildFlow Workflow Navigation -->
+<div class="workflow-navigation">
+    <h3>Nächster Schritt im BuildFlow</h3>
+    <div class="next-step-card">
+        <div class="step-info">
+            <div class="step-number">3</div>
+            <div class="step-details">
+                <h4>Rechnung erstellen</h4>
+                <p>Generieren Sie jetzt eine Rechnung aus diesem Auftrag</p>
+            </div>
+        </div>
+        <a href="/rechnung" class="workflow-btn">
+            <span>→ Rechnung erstellen</span>
+        </a>
+    </div>
+    
+    <div class="workflow-overview">
+        <span>Workflow: </span>
+        <span class="completed">✓ Kunde anlegen</span>
+        <span class="completed">✓ Auftrag erstellen</span>
+        <span class="next">→ Rechnung generieren</span>
+        <span class="pending">→ Rechnung als bezahlt markieren</span>
+        <span class="pending">→ Buchhaltung</span>
+    </div>
+</div>
+
+
 <script>
+  function toggleCalculationFields(selectElement) {
+    const parent = selectElement.closest('.arbeit-komponente');
+    const stundenFields = parent.querySelector('.stunden-fields');
+    const quadratFields = parent.querySelector('.quadratmeter-fields');
+    const stundenInputs = stundenFields.querySelectorAll('input');
+    const quadratInputs = quadratFields.querySelectorAll('input');
+    
+    if (selectElement.value === 'stunden') {
+      stundenFields.style.display = 'block';
+      quadratFields.style.display = 'none';
+      stundenInputs.forEach(input => input.required = true);
+      quadratInputs.forEach(input => { input.required = false; input.value = ''; });
+    } else if (selectElement.value === 'quadratmeter') {
+      stundenFields.style.display = 'none';
+      quadratFields.style.display = 'block';
+      quadratInputs.forEach(input => input.required = true);
+      stundenInputs.forEach(input => { input.required = false; input.value = ''; });
+    } else {
+      stundenFields.style.display = 'none';
+      quadratFields.style.display = 'none';
+      stundenInputs.forEach(input => { input.required = false; input.value = ''; });
+      quadratInputs.forEach(input => { input.required = false; input.value = ''; });
+    }
+  }
+
   function addKomponente() {
+    try {
+      console.log("addKomponente called");
+      const container = document.getElementById("komponenten-container");
+      if (!container) {
+        console.error("Container not found");
+        return;
+      }
+
+      let original = container.querySelector(".arbeit-komponente");
+
+      if (!original) {
+        // No existing component, create from scratch
+        console.log("No existing component found, creating new one from scratch");
+        original = createEmptyKomponente();
+        container.appendChild(original);
+        console.log("First component created successfully");
+        return;
+      }
+
+      console.log("Cloning existing component...");
+      const clone = original.cloneNode(true);
+
+      // Clear all form values
+      clone.querySelectorAll("input, textarea, select").forEach(el => {
+        el.value = "";
+        if (el.tagName === 'SELECT') {
+          el.selectedIndex = 0;
+        }
+      });
+
+      // Hide all calculation fields in new component
+      clone.querySelectorAll('.calculation-fields').forEach(field => field.style.display = 'none');
+      clone.querySelectorAll('.calculation-fields input').forEach(input => input.required = false);
+
+      container.appendChild(clone);
+      console.log("Component added successfully");
+    } catch (error) {
+      console.error("Error in addKomponente:", error);
+      alert("Fehler beim Hinzufügen der Arbeitseinheit: " + error.message);
+    }
+  }
+
+  function createEmptyKomponente() {
+    const komponente = document.createElement("div");
+    komponente.className = "arbeit-komponente";
+    komponente.innerHTML =
+      '<h4>Arbeitseinheit</h4>' +
+      '<label>Startdatum:</label>' +
+      '<input type="date" name="komponente_start[]" required>' +
+      '<label>Enddatum:</label>' +
+      '<input type="date" name="komponente_ende[]" required>' +
+      '<label>Tätigkeit:</label>' +
+      '<input type="text" name="arbeit[]" required>' +
+      '<label>Berechnungsbasis:</label>' +
+      '<select name="berechnungsbasis[]" onchange="toggleCalculationFields(this)" required>' +
+        '<option value="">-- Bitte wählen --</option>' +
+        '<option value="stunden">Nach Stunden</option>' +
+        '<option value="quadratmeter">Nach Quadratmetern</option>' +
+      '</select>' +
+      '<fieldset class="calculation-fields stunden-fields" style="display: none;">' +
+        '<legend>Stundenbasierte Abrechnung</legend>' +
+        '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">' +
+          '<div>' +
+            '<label>Stunden:</label>' +
+            '<input list="stunden" type="number" step="0.25" min="0.25" name="anzahl_stunden[]" placeholder="z.B. 8,5 oder 8.5">' +
+          '</div>' +
+          '<div>' +
+            '<label>Stundenlohn (€):</label>' +
+            '<input list="stundenlohn" type="number" step="0.01" min="1" name="stundenlohn[]" placeholder="z.B. 50,00 oder 50.00">' +
+          '</div>' +
+        '</div>' +
+      '</fieldset>' +
+      '<fieldset class="calculation-fields quadratmeter-fields" style="display: none;">' +
+        '<legend>Flächenbasierte Abrechnung</legend>' +
+        '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">' +
+          '<div>' +
+            '<label>Quadratmeter:</label>' +
+            '<input type="number" step="0.01" min="0.01" name="anzahl_quadrat[]" placeholder="z.B. 25,5 oder 25.5">' +
+          '</div>' +
+          '<div>' +
+            '<label>Preis pro Quadratmeter (€):</label>' +
+            '<input type="number" step="0.01" min="0.01" name="preis_pro_quadrat[]" placeholder="z.B. 15,00 oder 15.00">' +
+          '</div>' +
+        '</div>' +
+      '</fieldset>' +
+      '<label>Beschreibung:</label>' +
+      '<textarea name="beschreibung_liste[]"></textarea>' +
+      '<button type="button" class="btn btn-danger btn-sm" onclick="removeKomponente(this)">Entfernen</button>';
+    return komponente;
+  }
+
+  function removeKomponente(button) {
     const container = document.getElementById("komponenten-container");
-    const original = container.querySelector(".arbeit-komponente");
-    const clone = original.cloneNode(true);
-    clone.querySelectorAll("input, textarea").forEach(el => el.value = "");
-    container.appendChild(clone);
+    const komponenten = container.querySelectorAll(".arbeit-komponente");
+
+    if (komponenten.length <= 1) {
+      alert("Mindestens eine Arbeitseinheit muss vorhanden sein.");
+      return;
+    }
+
+    button.parentElement.remove();
   }
   function addMaterial() {
     const container = document.getElementById("material-container");
@@ -180,7 +360,7 @@
     <label>Preis pro Einheit (€):</label>
     <input list="preise" type="number" step="0.01" min="0.01" name="material_preis_pro_einheit[]" placeholder="z.B. 4,50 oder 4.50">
     
-    <button type="button" class="remove-btn" onclick="this.parentElement.remove()">Entfernen</button>
+    <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">Entfernen</button>
   `;
     container.appendChild(newMaterial);
   }

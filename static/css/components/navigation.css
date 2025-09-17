@@ -1,0 +1,228 @@
+/* Main Navigation Styles */
+.main-nav {
+    background-color: #e3e8ef;
+    padding: 0.5rem 1rem;
+    display: flex;
+    gap: 1.5rem;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,.04);
+}
+
+.main-nav a {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 600;
+    padding: .5rem 1rem;
+    border-radius: 6px;
+    transition: background-color .2s ease;
+    font-size: 1.05rem;
+}
+
+.main-nav a:hover {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.main-nav a.active {
+    background-color: #2563eb;
+    color: #fff;
+    font-weight: bold;
+}
+
+.invoice-nav-wrapper {
+    margin-bottom: 2rem;
+}
+
+/* EÜR navigation wrapper */
+.eur-nav-wrapper {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.05);
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.eur-nav-wrapper .main-nav {
+    margin-bottom: 0;
+}
+
+.eur-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.count {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.sub-nav {
+    margin-left: 1.5rem;
+    border-left: 3px solid #e3e8ef;
+    padding-left: 0.5rem;
+}
+
+.sub-nav.tabs {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+}
+
+/* Tabs Navigation */
+.tabs {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.tabs a {
+    background-color: rgba(248, 250, 252, 0.8);
+    border: 1px solid #e5e7eb;
+    color: #64748b;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.tabs a:hover {
+    background: rgba(148, 163, 184, 0.1);
+    color: #334155;
+    transform: translateY(-1px);
+}
+
+.tabs a.active {
+    background: #475569;
+    color: #ffffff;
+    font-weight: 600;
+    border-color: #475569;
+}
+
+/* Year Tabs Navigation */
+.year-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 10px;
+}
+
+.year-tab {
+    padding: 8px 16px;
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 6px 6px 0 0;
+    text-decoration: none;
+    color: #6b7280;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.year-tab:hover {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.year-tab.active {
+    background: #2563eb;
+    color: white;
+    border-color: #2563eb;
+}
+
+/* View Toggle Navigation */
+.view-toggle {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.view-toggle a {
+    padding: 8px 16px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    text-decoration: none;
+    color: #495057;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.view-toggle a:hover {
+    background: #e9ecef;
+    color: #212529;
+}
+
+.view-toggle a.active {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+/* Sidebar Navigation Sections */
+.nav-section {
+    margin: 20px 0;
+    border-bottom: 1px solid var(--border-primary, #ddd);
+    padding-bottom: 15px;
+}
+
+.nav-section:last-child {
+    border-bottom: none;
+}
+
+.nav-section h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-muted, #555);
+    margin: 0 0 10px 0;
+    padding: 0 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Sidebar links are handled by main styles in style.css */
+
+/* General Navigation Links (for other nav areas) */
+.nav-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.nav-links a {
+    padding: 10px 15px;
+    background: var(--bg-primary, #fff);
+    border: 1px solid var(--border-primary, #dee2e6);
+    border-radius: 5px;
+    text-decoration: none;
+    color: var(--text-secondary, #495057);
+    transition: all 0.2s;
+}
+
+.nav-links a:hover {
+    background: var(--bg-secondary, #f8f9fa);
+    border-color: var(--color-primary, #007bff);
+    color: var(--color-primary, #007bff);
+}
+
+/* Mobile Navigation */
+@media (max-width: 768px) {
+    .year-tabs {
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+    
+    .year-tab {
+        font-size: 0.9rem;
+        padding: 6px 12px;
+    }
+    
+    .nav-links {
+        flex-direction: column;
+    }
+}

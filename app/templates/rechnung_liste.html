@@ -5,123 +5,242 @@
 {% block content %}
 <h2>Rechnungsübersicht</h2>
 
+<!-- Error Message Display -->
+{% if 'error=material_costs_missing' in request.url.query %}
+<div style="background-color: #fee; border: 1px solid #fcc; padding: 1rem; margin-bottom: 1rem; border-radius: 4px;">
+    <strong>⚠️ Zahlung blockiert:</strong>
+    Bitte geben Sie zuerst die Materialkosten ein, bevor Sie die Rechnung als bezahlt markieren können.
+    {% if 'rechnung_id=' in request.url.query %}
+    {% set rechnung_id = request.url.query.split('rechnung_id=')[1].split('&')[0] %}
+    <a href="/rechnung/{{ rechnung_id }}/materialkosten" style="margin-left: 1rem; color: #007bff;">
+        → Materialkosten für Rechnung #{{ rechnung_id }} eingeben
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Success Message Display -->
+{% if 'deleted=success' in request.url.query %}
+<div
+    style="background-color: #d4edda; border: 1px solid #c3e6cb; padding: 1rem; margin-bottom: 1rem; border-radius: 4px;">
+    <strong>✅ Erfolg:</strong>
+    Die Rechnung wurde erfolgreich gelöscht.
+</div>
+{% endif %}
+
 <div class="invoice-nav-wrapper">
     <nav class="main-nav">
-        <a href="/rechnungsliste" 
-           class="{% if not status %}active{% endif %}">
-            Alle Rechnungen <span class="count">({{ rechnungen|length }})</span>
+        <a href="/rechnungsliste" class="{% if not status %}active{% endif %}">
+            Alle Rechnungen <span class="count">({{ alle_count }})</span>
         </a>
     </nav>
-    <div class="tabs sub-nav">
-        <a href="/rechnungsliste?status=offen"
-           class="{% if status == 'offen' %}active{% endif %}">Offene Rechnungen</a>
-        <a href="/rechnungsliste?status=bezahlt"
-           class="{% if status == 'bezahlt' %}active{% endif %}">Bezahlte Rechnungen</a>
+    <div class="tabs sub-nav" style="display: flex; gap: 0;">
+        <a href="/rechnungsliste?status=offen" class="{% if status == 'offen' %}active{% endif %}">Offene Rechnungen
+            <span class="count">({{ offene_count }})</span></a>
+        <a href="/rechnungsliste?status=bezahlt" class="{% if status == 'bezahlt' %}active{% endif %}">Bezahlte
+            Rechnungen <span class="count">({{ bezahlte_count }})</span></a>
     </div>
 </div>
 
-<style>
-.invoice-nav-wrapper {
-    margin-bottom: 2rem;
-}
+<!-- Navigation and action styles moved to navigation.css -->
 
-.main-nav {
-    background-color: #e3e8ef;
-    padding: 0.5rem 1rem;
-    display: flex;
-    gap: 1.5rem;
-    border-radius: 6px;
-    margin-bottom: 0.5rem;
-    box-shadow: 0 2px 6px rgba(0,0,0,.04);
-}
-
-.main-nav a {
-    color: #2563eb;
-    text-decoration: none;
-    font-weight: 600;
-    padding: .5rem 1rem;
-    border-radius: 6px;
-    transition: background-color .2s ease;
-    font-size: 1.05rem;
-}
-
-.main-nav a:hover {
-    background-color: #dbeafe;
-    color: #1e40af;
-}
-
-.main-nav a.active {
-    background-color: #2563eb;
-    color: #fff;
-    font-weight: bold;
-}
-
-.count {
-    font-size: 0.9rem;
-    opacity: 0.8;
-}
-
-.sub-nav {
-    margin-left: 1.5rem;
-    border-left: 3px solid #e3e8ef;
-    padding-left: 0.5rem;
-}
-</style>
-
-<table>
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Kunde</th>
-            <th>Auftrag</th>
-            <th>Rechnungsdatum</th>
-            <th>Fälligkeit</th>
-            <th>Betrag gesamt</th>
-            <th>Status</th>
-            <th>Zahlungsdatum</th>
-            <th>Aktionen</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for r in rechnungen %}
-        <tr>
-            <td>{{ r.id }}</td>
-            <td>
-                {% if r.kunde.kundenart == "Privatkunde" %}
+<div class="table-responsive">
+    <table class="invoices-table table-hover table-striped">
+        <thead>
+            <tr>
+                <th>Kunde</th>
+                <th>Auftrag</th>
+                <th>Rechnungsdatum</th>
+                <th>Betrag gesamt</th>
+                <th>Status</th>
+                <th>Materialkosten</th>
+                <th>Material Belege</th>
+                <th>Zahlungsdatum</th>
+                <th>Aktionen</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in rechnungen %}
+            <tr>
+                <td>
+                    {% if r.kunde.kundenart == "Privatkunde" %}
                     {{ r.kunde.kunde_nachname }} {{ r.kunde.kunde_vorname }}
-                {% else %}
-                    {{ r.kunde.ansprechpartner_nachname }} {{ r.kunde.ansprechpartner_vorname }}
+                    {% else %}
                     {% if r.kunde.kunde_firmenname %}
-                        – {{ r.kunde.kunde_firmenname }}
+                    <div style="font-weight: 600;">{{ r.kunde.kunde_firmenname }}</div>
+                    <div style="font-size: 0.9em; color: #666;">{{ r.kunde.ansprechpartner_nachname }} {{
+                        r.kunde.ansprechpartner_vorname }}</div>
+                    {% else %}
+                    {{ r.kunde.ansprechpartner_nachname }} {{ r.kunde.ansprechpartner_vorname }}
                     {% endif %}
-                {% endif %}
-            </td>
-            <td>{{ r.auftrag.id }}</td>
-            <td>{{ r.rechnungsdatum.strftime('%d.%m.%Y') if r.rechnungsdatum else '' }}</td>
-            <td>{{ r.faelligkeit.strftime('%d.%m.%Y') }}</td>
-            <td>{{ "{:,.2f}".format(r.rechnungssumme_gesamt) }} €</td>
-            <td>{{ 'Bezahlt' if r.bezahlt else 'Offen' }}</td>
-            <td>
-                {% if r.payment_date %}
+                    {% endif %}
+                </td>
+                <td>{{ r.auftrag.id }}</td>
+                <td>{{ r.rechnungsdatum.strftime('%d.%m.%Y') if r.rechnungsdatum else '' }}</td>
+                <td class="currency">{{ r.rechnungssumme_gesamt|german_decimal }}&nbsp;€</td>
+                <td>{{ 'Bezahlt' if r.bezahlt else 'Offen' }}</td>
+                <td>
+                    {% if r.auftrag and r.auftrag.materialien %}
+                    {% set materials_with_costs = r.auftrag.materialien | selectattr('actual_cost') |
+                    selectattr('actual_cost', '>', 0) | list %}
+                    {% if materials_with_costs | length == r.auftrag.materialien | length %}
+                    Erfasst
+                    {% elif materials_with_costs | length > 0 %}
+                    Teilweise
+                    {% else %}
+                    Fehlt
+                    {% endif %}
+                    {% else %}
+                    Keine
+                    {% endif %}
+                </td>
+                <td>
+                    {% if r.auftrag and r.auftrag.materialien %}
+                    {% set materials_with_receipts = r.auftrag.materialien | selectattr('receipt_path') | list %}
+                    {% if materials_with_receipts %}
+                    <div style="display: flex; flex-direction: column; gap: 2px;">
+                        {% for material in materials_with_receipts %}
+                        {% set receipt_files = material.receipt_path.split(',') if material.receipt_path else [] %}
+                        {% for receipt_file in receipt_files %}
+                        <a href="/receipt/{{ receipt_file.strip() }}" target="_blank"
+                            style="font-size: 11px; color: #007bff; text-decoration: none;"
+                            title="{{ material.bezeichnung }} - {{ receipt_file.strip()|basename }}">
+                            📄 {{ material.bezeichnung[:15] }}{% if receipt_files|length > 1 %} ({{ loop.index }}){%
+                            endif %}{% if material.bezeichnung|length > 15 %}...{% endif %}
+                        </a>
+                        {% endfor %}
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <span style="color: #666; font-size: 11px;">Keine Belege</span>
+                    {% endif %}
+                    {% else %}
+                    <span style="color: #666; font-size: 11px;">—</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if r.payment_date %}
                     {{ r.payment_date.strftime('%d.%m.%Y') }}
-                {% else %}
+                    {% else %}
                     —
-                {% endif %}
-            </td>
-            <td>
-              <button onclick="toggleInvoiceStatus({{ r.id }}, {{ 'true' if r.bezahlt else 'false' }})" 
-                      style="font-size: 12px; padding: 4px 8px; margin-right: 5px;">
-                Als {{ 'offen' if r.bezahlt else 'bezahlt' }} markieren
-              </button>
-              <button onclick="window.location.href='/rechnung/{{ r.id }}/materialkosten'" 
-                      style="font-size: 12px; padding: 4px 8px; margin-right: 5px;">Materialkosten</button>
-              <button onclick="window.location.href='/rechnung/{{ r.id }}/download'" 
-                      style="font-size: 12px; padding: 4px 8px;">Download</button>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+                    {% endif %}
+                </td>
+                <td class="actions-cell">
+                    <div class="action-buttons">
+                        <button onclick="toggleInvoiceStatus({{ r.id }}, {{ 'true' if r.bezahlt else 'false' }})"
+                            class="action-btn">
+                            {{ 'Bearbeiten' if r.bezahlt else 'Als bezahlt markieren' }}
+                        </button>
+                        <button onclick="window.location.href='/rechnung/{{ r.id }}/materialkosten'"
+                            class="action-btn">Materialkosten</button>
+                        <button onclick="window.location.href='/rechnung/{{ r.id }}/download'"
+                            class="action-btn">Download</button>
+                        <button onclick="deleteInvoice({{ r.id }})" class="btn btn-danger btn-sm">Löschen</button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Manual Bookings Table -->
+{% if manual_entries %}
+<div style="margin-top: 2rem;">
+    <h3>Manuelle Buchungen</h3>
+    <div class="table-responsive">
+        <table class="manual-bookings-table table-hover table-striped">
+            <thead>
+                <tr>
+                    <th>Datum</th>
+                    <th>Typ</th>
+                    <th>Betrag</th>
+                    <th>Beschreibung</th>
+                    <th>Kategorie</th>
+                    <th>Belege</th>
+                    <th>Aktionen</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in manual_entries %}
+                <tr>
+                    <td>{{ entry.datum.strftime('%d.%m.%Y') }}</td>
+                    <td>
+                        <span
+                            style="color: {% if entry.typ.lower() == 'einnahme' %}#28a745{% else %}#dc3545{% endif %}; font-weight: 500;">
+                            {{ entry.typ|title }}
+                        </span>
+                    </td>
+                    <td class="currency">
+                        {% if entry.betrag is not none and entry.betrag != 0 %}
+                        {% if entry.typ.lower() == 'einnahme' %}+{% endif %}{{ entry.betrag|german_decimal }}&nbsp;€
+                        {% else %}
+                        <!-- Debug: {{ entry.betrag }} -->
+                        <span style="color: #999;">{{ entry.betrag if entry.betrag is not none else 'None'
+                            }}&nbsp;€</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ entry.beschreibung }}</td>
+                    <td>{{ entry.kategorie.name if entry.kategorie else '-' }}</td>
+                    <td>
+                        {% if entry.receipt_files %}
+                        {% set receipt_list = entry.receipt_files | from_json %}
+                        {% if receipt_list and receipt_list|length > 0 %}
+                        <div class="action-buttons">
+                            {% for filename in receipt_list %}
+                            <a href="/receipts/{{ filename }}" target="_blank" class="action-btn" title="Beleg öffnen">
+                                📄 {{ filename.split('_')[-1] }}
+                            </a>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        -
+                        {% endif %}
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                    <td class="actions-cell">
+                        <div class="action-buttons">
+                            <button onclick="editManualBooking({{ entry.id }})" class="action-btn">Bearbeiten</button>
+                            <button onclick="deleteManualBooking({{ entry.id }})"
+                                class="btn btn-danger btn-sm">Löschen</button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- BuildFlow Workflow Navigation -->
+<div class="workflow-navigation">
+    <h3>Nächster Schritt im BuildFlow</h3>
+    <div class="next-step-card">
+        <div class="step-info">
+            <div class="step-number">5</div>
+            <div class="step-details">
+                <h4>Buchhaltung führen</h4>
+                <p>Überprüfen Sie Ihre Buchungen und EÜR-Übersicht nach dem Eingeben von Materialkosten und Zahlungen
+                </p>
+            </div>
+        </div>
+        <a href="/euer" class="workflow-btn">
+            <span>→ Buchungsübersicht</span>
+        </a>
+    </div>
+
+    <div class="workflow-overview">
+        <span>Workflow: </span>
+        <span class="completed">✓ Kunde anlegen</span>
+        <span class="completed">✓ Auftrag erstellen</span>
+        <span class="completed">✓ Rechnung generieren</span>
+        <span class="completed">✓ Rechnung als bezahlt markieren</span>
+        <span class="next">→ Buchhaltung</span>
+    </div>
+</div>
 
 <!-- Payment Date Modal -->
 <div id="paymentDateModal" class="modal">
@@ -134,207 +253,165 @@
             <p>Wann wurde die Rechnung bezahlt?</p>
             <input type="date" id="paymentDateInput" class="date-input">
             <div class="modal-buttons">
-                <button id="confirmPayment" class="btn-primary">Bestätigen</button>
-                <button id="cancelPayment" class="btn-secondary">Abbrechen</button>
+                <button id="confirmPayment" class="modal-btn-primary">Bestätigen</button>
+                <button id="cancelPayment" class="modal-btn-secondary">Abbrechen</button>
+            </div>
+            <div class="modal-unpaid-section">
+                <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
+                <p style="font-size: 14px; color: #666; margin-bottom: 10px;">Oder Rechnung als unbezahlt markieren:</p>
+                <button id="markUnpaid" class="btn-unpaid">Rechnung als unbezahlt markieren</button>
             </div>
         </div>
     </div>
 </div>
 
-<style>
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.5);
-}
-
-.modal-content {
-    background-color: #fefefe;
-    margin: 15% auto;
-    padding: 0;
-    border: none;
-    border-radius: 8px;
-    width: 400px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-}
-
-.modal-header {
-    background-color: #f8f9fa;
-    padding: 20px;
-    border-bottom: 1px solid #dee2e6;
-    border-radius: 8px 8px 0 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.modal-header h3 {
-    margin: 0;
-    color: #333;
-    font-size: 18px;
-}
-
-.close {
-    color: #aaa;
-    font-size: 24px;
-    font-weight: bold;
-    cursor: pointer;
-    line-height: 1;
-}
-
-.close:hover {
-    color: #000;
-}
-
-.modal-body {
-    padding: 20px;
-}
-
-.modal-body p {
-    margin: 0 0 15px 0;
-    color: #666;
-}
-
-.date-input {
-    width: 100%;
-    padding: 12px;
-    border: 2px solid #ddd;
-    border-radius: 6px;
-    font-size: 16px;
-    margin-bottom: 20px;
-    box-sizing: border-box;
-}
-
-.date-input:focus {
-    outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
-}
-
-.modal-buttons {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-}
-
-.btn-primary, .btn-secondary {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-}
-
-.btn-primary {
-    background-color: #007bff;
-    color: white;
-}
-
-.btn-primary:hover {
-    background-color: #0056b3;
-}
-
-.btn-secondary {
-    background-color: #6c757d;
-    color: white;
-}
-
-.btn-secondary:hover {
-    background-color: #545b62;
-}
-</style>
+<!-- Modal and workflow styles moved to separate CSS files -->
 
 <script>
-let currentInvoiceId = null;
+    let currentInvoiceId = null;
 
-function toggleInvoiceStatus(invoiceId, isPaid) {
-    if (isPaid) {
-        // If currently paid, just mark as unpaid (no date needed)
-        submitStatusChange(invoiceId, null);
-    } else {
-        // If currently unpaid, show payment date modal
+    function toggleInvoiceStatus(invoiceId, isPaid) {
+        // Always show payment date modal for paid invoices to allow date changes
+        // For unpaid invoices, show modal to set payment date
         currentInvoiceId = invoiceId;
-        showPaymentDateModal();
+        if (isPaid) {
+            showPaymentDateModal(true); // true indicates updating existing payment
+        } else {
+            showPaymentDateModal(false); // false indicates new payment
+        }
     }
-}
 
-function showPaymentDateModal() {
-    const modal = document.getElementById('paymentDateModal');
-    const dateInput = document.getElementById('paymentDateInput');
-    
-    // Set today's date as default
-    const today = new Date();
-    dateInput.value = today.toISOString().split('T')[0];
-    
-    modal.style.display = 'block';
-    dateInput.focus();
-}
+    function showPaymentDateModal(isUpdate = false) {
+        const modal = document.getElementById('paymentDateModal');
+        const dateInput = document.getElementById('paymentDateInput');
+        const modalTitle = modal.querySelector('h3');
+        const modalText = modal.querySelector('p');
+        const unpaidSection = modal.querySelector('.modal-unpaid-section');
 
-function hidePaymentDateModal() {
-    const modal = document.getElementById('paymentDateModal');
-    modal.style.display = 'none';
-    currentInvoiceId = null;
-}
+        if (isUpdate) {
+            modalTitle.textContent = 'Zahlungsdatum ändern';
+            modalText.textContent = 'Neues Zahlungsdatum eingeben:';
+            unpaidSection.style.display = 'block'; // Show unpaid option for paid invoices
+        } else {
+            modalTitle.textContent = 'Zahlungsdatum eingeben';
+            modalText.textContent = 'Wann wurde die Rechnung bezahlt?';
+            unpaidSection.style.display = 'none'; // Hide unpaid option for unpaid invoices
+        }
 
-function submitStatusChange(invoiceId, paymentDate) {
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '/rechnung/' + invoiceId + '/status';
-    
-    if (paymentDate) {
-        const dateInput = document.createElement('input');
-        dateInput.type = 'hidden';
-        dateInput.name = 'payment_date';
-        dateInput.value = paymentDate;
-        form.appendChild(dateInput);
+        // Set today's date as default
+        const today = new Date();
+        dateInput.value = today.toISOString().split('T')[0];
+
+        modal.style.display = 'block';
+        dateInput.focus();
     }
-    
-    document.body.appendChild(form);
-    form.submit();
-}
 
-// Modal event listeners
-document.addEventListener('DOMContentLoaded', function() {
-    const modal = document.getElementById('paymentDateModal');
-    const closeBtn = document.querySelector('.close');
-    const confirmBtn = document.getElementById('confirmPayment');
-    const cancelBtn = document.getElementById('cancelPayment');
-    const dateInput = document.getElementById('paymentDateInput');
-    
-    // Close modal when clicking X
-    closeBtn.onclick = hidePaymentDateModal;
-    
-    // Close modal when clicking outside
-    window.onclick = function(event) {
-        if (event.target === modal) {
-            hidePaymentDateModal();
+    function hidePaymentDateModal() {
+        const modal = document.getElementById('paymentDateModal');
+        modal.style.display = 'none';
+        currentInvoiceId = null;
+    }
+
+    function submitStatusChange(invoiceId, paymentDate) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/rechnung/' + invoiceId + '/status';
+
+        if (paymentDate) {
+            const dateInput = document.createElement('input');
+            dateInput.type = 'hidden';
+            dateInput.name = 'payment_date';
+            dateInput.value = paymentDate;
+            form.appendChild(dateInput);
         }
-    };
-    
-    // Cancel button
-    cancelBtn.onclick = hidePaymentDateModal;
-    
-    // Confirm button
-    confirmBtn.onclick = function() {
-        const paymentDate = dateInput.value;
-        if (paymentDate && currentInvoiceId) {
-            submitStatusChange(currentInvoiceId, paymentDate);
-            hidePaymentDateModal();
+
+        // Preserve current status filter
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentStatus = urlParams.get('status');
+        if (currentStatus) {
+            const statusInput = document.createElement('input');
+            statusInput.type = 'hidden';
+            statusInput.name = 'status_filter';
+            statusInput.value = currentStatus;
+            form.appendChild(statusInput);
         }
-    };
-    
-    // Enter key in date input
-    dateInput.onkeypress = function(event) {
-        if (event.key === 'Enter') {
-            confirmBtn.click();
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    // Modal event listeners
+    document.addEventListener('DOMContentLoaded', function () {
+        const modal = document.getElementById('paymentDateModal');
+        const closeBtn = document.querySelector('.close');
+        const confirmBtn = document.getElementById('confirmPayment');
+        const cancelBtn = document.getElementById('cancelPayment');
+        const dateInput = document.getElementById('paymentDateInput');
+
+        // Close modal when clicking X
+        closeBtn.onclick = hidePaymentDateModal;
+
+        // Close modal when clicking outside
+        window.onclick = function (event) {
+            if (event.target === modal) {
+                hidePaymentDateModal();
+            }
+        };
+
+        // Cancel button
+        cancelBtn.onclick = hidePaymentDateModal;
+
+        // Mark as unpaid button
+        const markUnpaidBtn = document.getElementById('markUnpaid');
+        markUnpaidBtn.onclick = function () {
+            if (currentInvoiceId) {
+                // Submit with no payment date to mark as unpaid
+                submitStatusChange(currentInvoiceId, null);
+                hidePaymentDateModal();
+            }
+        };
+
+        // Confirm button
+        confirmBtn.onclick = function () {
+            const paymentDate = dateInput.value;
+            if (currentInvoiceId) {
+                // Allow empty date for marking as unpaid
+                submitStatusChange(currentInvoiceId, paymentDate || null);
+                hidePaymentDateModal();
+            }
+        };
+
+        // Enter key in date input
+        dateInput.onkeypress = function (event) {
+            if (event.key === 'Enter') {
+                confirmBtn.click();
+            }
+        };
+    });
+
+    // Manual booking actions
+    function editManualBooking(bookingId) {
+        window.location.href = '/buchungen/' + bookingId + '/bearbeiten';
+    }
+
+    function deleteManualBooking(bookingId) {
+        if (confirm('Sind Sie sicher, dass Sie diese manuelle Buchung permanent löschen möchten? Alle zugehörigen Belege werden ebenfalls gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.')) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/buchungen/' + bookingId + '/loeschen';
+            document.body.appendChild(form);
+            form.submit();
         }
-    };
-});
+    }
+
+    function deleteInvoice(invoiceId) {
+        if (confirm('Sind Sie sicher, dass Sie diese Rechnung permanent löschen möchten? Alle zugehörigen Buchungen und die PDF-Datei werden ebenfalls gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.')) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/rechnung/' + invoiceId + '/loeschen';
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
 </script>
 {% endblock %}

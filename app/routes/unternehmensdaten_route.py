@@ -1,24 +1,19 @@
+"""Company data management routes for business information and settings."""
+
 from fastapi import APIRouter, Request, Form, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
-from database.db import SessionLocal
+from database.db import get_db
 from app.models.unternehmensdaten import Unternehmensdaten
-from fastapi.templating import Jinja2Templates
+from app.utils.template_utils import create_templates
 import os
 from pathlib import Path
 
 router = APIRouter()
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
+templates = create_templates()
 
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 @router.get("/unternehmensdaten", response_class=HTMLResponse)
@@ -45,6 +40,7 @@ def unternehmensdaten_speichern(
     zahlungsinfo_bank_name: str = Form(...),
     zahlungsinfo_iban: str = Form(...),
     zahlungsinfo_paypal: str = Form(...),
+    rechtliche_informationen: str = Form(""),
     db: Session = Depends(get_db)
 ):
     daten = db.query(Unternehmensdaten).first()
@@ -59,6 +55,7 @@ def unternehmensdaten_speichern(
         daten.zahlungsinfo_bank_name = zahlungsinfo_bank_name
         daten.zahlungsinfo_iban = zahlungsinfo_iban
         daten.zahlungsinfo_paypal = zahlungsinfo_paypal
+        daten.rechtliche_informationen = rechtliche_informationen
     else:
         daten = Unternehmensdaten(
             unternehmen_name=unternehmen_name,
@@ -70,7 +67,8 @@ def unternehmensdaten_speichern(
             zahlungsinfo_name=zahlungsinfo_name,
             zahlungsinfo_bank_name=zahlungsinfo_bank_name,
             zahlungsinfo_iban=zahlungsinfo_iban,
-            zahlungsinfo_paypal=zahlungsinfo_paypal
+            zahlungsinfo_paypal=zahlungsinfo_paypal,
+            rechtliche_informationen=rechtliche_informationen
         )
         db.add(daten)
 

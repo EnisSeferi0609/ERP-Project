@@ -1,0 +1,45 @@
+/* Year Tabs Component - Reusable across pages */
+
+.year-nav-wrapper {
+    margin-bottom: 2rem;
+}
+
+.year-tabs {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.year-tab {
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+    transition: all 0.2s ease;
+    font-size: 0.95rem;
+}
+
+/* Default state */
+.year-tab:not(.active) {
+    background-color: #f8f9fa;
+    color: #333;
+    font-weight: normal;
+}
+
+/* Active state */
+.year-tab.active {
+    background-color: #2563eb;
+    color: white;
+    font-weight: 600;
+}
+
+/* Hover states */
+.year-tab:not(.active):hover {
+    background-color: #e9ecef !important;
+    color: #333 !important;
+}
+
+.year-tab.active:hover {
+    background-color: #1e40af !important;
+    color: white !important;
+}

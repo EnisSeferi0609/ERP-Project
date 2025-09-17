@@ -1,19 +1,14 @@
-from fastapi import APIRouter, Request, Depends
-from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import Session
+"""Home page and main dashboard route."""
 
-from database.db import get_db
-from app.models import Unternehmensstatistik
+from fastapi import APIRouter, Request
+from app.utils.template_utils import create_templates
 
 router = APIRouter()
-templates = Jinja2Templates(directory="templates")
+templates = create_templates()
 
 
 @router.get("/")
-def dashboard(request: Request, db: Session = Depends(get_db)):
-    daten = db.query(Unternehmensstatistik).order_by(
-        Unternehmensstatistik.datum.desc()).all()
-    return templates.TemplateResponse("dashboard.html", {
-        "request": request,
-        "daten": daten
+def startseite(request: Request):
+    return templates.TemplateResponse("startseite.html", {
+        "request": request
     })

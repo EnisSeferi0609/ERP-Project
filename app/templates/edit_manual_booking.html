@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}Manuelle Buchung bearbeiten{% endblock %}
+
+{% block content %}
+<h2>Manuelle Buchung bearbeiten</h2>
+
+<form action="/buchungen/{{ buchung.id }}/bearbeiten" method="post" enctype="multipart/form-data">
+    <div class="form-section">
+        <h3>Buchungsdetails</h3>
+        
+        <div class="form-group">
+            <label for="datum">Datum:</label>
+            <input type="date" id="datum" name="datum" required 
+                   value="{{ buchung.datum.strftime('%Y-%m-%d') }}">
+        </div>
+        
+        <div class="form-group">
+            <label for="typ">Typ:</label>
+            <select id="typ" name="typ" required>
+                <option value="einnahme" {% if buchung.typ == 'einnahme' %}selected{% endif %}>Einnahme</option>
+                <option value="ausgabe" {% if buchung.typ == 'ausgabe' %}selected{% endif %}>Ausgabe</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="betrag">Betrag (€):</label>
+            <input type="number" id="betrag" name="betrag" step="0.01" required 
+                   value="{{ buchung.betrag }}">
+        </div>
+        
+        <div class="form-group">
+            <label for="kategorie_id">Kategorie:</label>
+            <select id="kategorie_id" name="kategorie_id" required>
+                {% for kategorie in kategorien %}
+                <option value="{{ kategorie.id }}" 
+                        {% if kategorie.id == buchung.kategorie_id %}selected{% endif %}>
+                    {{ kategorie.name }} ({{ kategorie.typ|title }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="beschreibung">Beschreibung:</label>
+            <textarea id="beschreibung" name="beschreibung" rows="3" 
+                      style="width: 100%; box-sizing: border-box;">{{ buchung.beschreibung }}</textarea>
+        </div>
+    </div>
+    
+    <div class="form-section">
+        <h3>Belege</h3>
+        
+        <!-- Existing receipts -->
+        {% if buchung.receipt_files %}
+            {% set receipt_list = buchung.receipt_files | from_json %}
+            {% if receipt_list and receipt_list|length > 0 %}
+            <div class="existing-receipts">
+                <h4>Vorhandene Belege:</h4>
+                <div class="receipt-list">
+                    {% for filename in receipt_list %}
+                    <div class="receipt-item">
+                        <a href="/receipts/{{ filename }}" target="_blank" class="receipt-link">
+                            📄 {{ filename.split('_')[-1] }}
+                        </a>
+                        <button type="button" onclick="deleteReceipt('{{ filename }}', {{ buchung.id }})" 
+                                class="delete-btn" title="Beleg löschen">🗑️</button>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        {% endif %}
+        
+        <!-- Upload new receipts -->
+        <div class="file-upload-section">
+            <label for="receipt_files">Neue Belege hinzufügen:</label>
+            <div class="custom-file-input" onclick="document.getElementById('receipt_files').click()">
+                <div class="file-input-content">
+                    <div class="upload-icon">📁</div>
+                    <div class="upload-text">
+                        <div>Belege hochladen</div>
+                        <div class="file-types">PDF, JPG, PNG, GIF, TIFF, BMP (max. 10MB pro Datei)</div>
+                        <div class="file-types" style="font-size: 0.7rem; margin-top: 0.25rem; opacity: 0.8;">
+                            Mehrere Dateien gleichzeitig möglich
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <input type="file" 
+                   id="receipt_files"
+                   name="receipt_files" 
+                   accept=".pdf,.jpg,.jpeg,.png,.gif,.tiff,.bmp"
+                   title="Erlaubte Dateitypen: PDF, JPG, PNG, GIF, TIFF, BMP (max. 10MB pro Datei)"
+                   multiple
+                   style="display: none;"
+                   onchange="showSelectedFiles()">
+            
+            <div id="selected-files" style="margin-top: 1rem;"></div>
+        </div>
+    </div>
+    
+    <div class="form-actions">
+        <button type="submit" class="btn btn-success">Buchung speichern</button>
+        <a href="/rechnungsliste" class="btn btn-secondary">Abbrechen</a>
+    </div>
+</form>
+
+
+<script>
+function showSelectedFiles() {
+    const fileInput = document.getElementById('receipt_files');
+    const selectedFilesDiv = document.getElementById('selected-files');
+    
+    if (fileInput.files.length > 0) {
+        let html = '<h4>Ausgewählte neue Belege:</h4>';
+        for (let i = 0; i < fileInput.files.length; i++) {
+            const file = fileInput.files[i];
+            const fileSize = (file.size / 1024 / 1024).toFixed(2);
+            html += `<div class="selected-file">📎 ${file.name} (${fileSize} MB)</div>`;
+        }
+        selectedFilesDiv.innerHTML = html;
+    } else {
+        selectedFilesDiv.innerHTML = '';
+    }
+}
+
+async function deleteReceipt(filename, bookingId) {
+    if (confirm(`Möchten Sie den Beleg "${filename}" wirklich löschen?`)) {
+        try {
+            const formData = new FormData();
+            formData.append('booking_id', bookingId);
+            formData.append('filename', filename);
+            
+            const response = await fetch(`/buchungen/${bookingId}/delete-receipt`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            });
+            
+            if (response.ok) {
+                // Reload page to show updated receipt list
+                location.reload();
+            } else {
+                alert('Fehler beim Löschen des Belegs.');
+            }
+        } catch (error) {
+            console.error('Error deleting receipt:', error);
+            alert('Fehler beim Löschen des Belegs.');
+        }
+    }
+}
+
+// File size validation
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('receipt_files');
+    
+    fileInput.addEventListener('change', function() {
+        const files = Array.from(this.files);
+        let totalSize = 0;
+        
+        for (let file of files) {
+            totalSize += file.size;
+            if (file.size > 10 * 1024 * 1024) { // 10MB per file
+                alert(`Datei "${file.name}" ist zu groß! Maximum: 10MB pro Datei`);
+                this.value = '';
+                showSelectedFiles();
+                return;
+            }
+        }
+        
+        // Check total size (reasonable limit for multiple files)
+        if (totalSize > 50 * 1024 * 1024) { // 50MB total
+            const totalSizeMB = (totalSize / 1024 / 1024).toFixed(2);
+            alert(`Gesamtgröße aller Dateien (${totalSizeMB} MB) ist zu groß! Maximum: 50MB gesamt`);
+            this.value = '';
+            showSelectedFiles();
+            return;
+        }
+        
+        showSelectedFiles();
+    });
+});
+</script>
+{% endblock %}

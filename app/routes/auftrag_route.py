@@ -1,30 +1,25 @@
+"""Order management routes for creating and managing construction projects."""
+
 from fastapi import APIRouter, Request, Form, Depends
 from fastapi.responses import RedirectResponse, HTMLResponse
 from sqlalchemy.orm import Session
-from database.db import SessionLocal
+from database.db import get_db
 from app.models.auftrag import Auftrag
 from app.models.kunde import Kunde
 from app.models.arbeit_komponente import ArbeitKomponente
 from app.models.material_komponente import MaterialKomponente
 from app.models.eur_kategorie import EurKategorie
 from app.models.einnahme_ausgabe import EinnahmeAusgabe
-from fastapi.templating import Jinja2Templates
+from app.utils.template_utils import create_templates
 from pathlib import Path
 import datetime
 import os
 from typing import List, Optional
 
 router = APIRouter()
-BASE_DIR = Path(__file__).resolve().parent.parent
-templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
+templates = create_templates()
 
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 def get_kategorie_id(db: Session, name: str, typ: str) -> int | None:
@@ -61,8 +56,11 @@ async def auftrag_anlegen(
     komponente_start: List[str] = Form(..., alias="komponente_start[]"),
     komponente_ende: List[str] = Form(..., alias="komponente_ende[]"),
     arbeit: List[str] = Form(..., alias="arbeit[]"),
-    anzahl_stunden: List[str] = Form(..., alias="anzahl_stunden[]"),
-    stundenlohn: List[str] = Form(..., alias="stundenlohn[]"),
+    berechnungsbasis: List[str] = Form(..., alias="berechnungsbasis[]"),
+    anzahl_stunden: Optional[List[str]] = Form(None, alias="anzahl_stunden[]"),
+    stundenlohn: Optional[List[str]] = Form(None, alias="stundenlohn[]"),
+    anzahl_quadrat: Optional[List[str]] = Form(None, alias="anzahl_quadrat[]"),
+    preis_pro_quadrat: Optional[List[str]] = Form(None, alias="preis_pro_quadrat[]"),
     beschreibung_liste: List[str] = Form(..., alias="beschreibung_liste[]"),
 
     # Material (optional)
@@ -84,10 +82,14 @@ async def auftrag_anlegen(
     material_erloese_id = get_kategorie_id(db, "Materialerlöse", "einnahme")
     materialkosten_id = get_kategorie_id(db, "Materialkosten", "ausgabe")
 
+    # Find the earliest start date from all work components
+    start_dates = [datetime.datetime.strptime(date, "%Y-%m-%d").date() for date in komponente_start]
+    earliest_start_date = min(start_dates) if start_dates else datetime.date.today()
+
     neuer_auftrag = Auftrag(
         kunde_id=kunde_id,
         beschreibung=auftragsbeschreibung,
-        auftrag_start=datetime.date.today(),
+        auftrag_start=earliest_start_date,
         kunde_leistungsadresse=kunde_leistungsadresse,
         kunde_leistung_plz=kunde_leistung_plz,
         kunde_leistung_ort=kunde_leistung_ort
@@ -101,13 +103,31 @@ async def auftrag_anlegen(
             komponente_start[i], "%Y-%m-%d").date()
         ende = datetime.datetime.strptime(
             komponente_ende[i], "%Y-%m-%d").date()
+        
+        # Get the appropriate values based on calculation method
+        basis = berechnungsbasis[i]
+        stunden_val = None
+        lohn_val = None  
+        quadrat_val = None
+        preis_quadrat_val = None
+        
+        if basis == "stunden":
+            stunden_val = parse_german_decimal(anzahl_stunden[i] if anzahl_stunden and i < len(anzahl_stunden) else "0")
+            lohn_val = parse_german_decimal(stundenlohn[i] if stundenlohn and i < len(stundenlohn) else "0")
+        elif basis == "quadratmeter":
+            quadrat_val = parse_german_decimal(anzahl_quadrat[i] if anzahl_quadrat and i < len(anzahl_quadrat) else "0")
+            preis_quadrat_val = parse_german_decimal(preis_pro_quadrat[i] if preis_pro_quadrat and i < len(preis_pro_quadrat) else "0")
+        
         ak = ArbeitKomponente(
             auftrag_id=neuer_auftrag.id,
             komponente_start=start,
             komponente_ende=ende,
             arbeit=arbeit[i],
-            anzahl_stunden=parse_german_decimal(anzahl_stunden[i]),
-            stundenlohn=parse_german_decimal(stundenlohn[i]),
+            berechnungsbasis=basis,
+            anzahl_stunden=stunden_val,
+            stundenlohn=lohn_val,
+            anzahl_quadrat=quadrat_val,
+            preis_pro_quadrat=preis_quadrat_val,
             beschreibung=beschreibung_liste[i],
             kategorie_id=erloese_id
         )
