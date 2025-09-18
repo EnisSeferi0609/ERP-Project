@@ -1,6 +1,40 @@
 # BuildFlow ERP System
 
-BuildFlow is a comprehensive ERP system specifically designed for construction and handcraft businesses. It streamlines business operations from customer management to accounting with an intuitive web interface and guided workflow.
+BuildFlow is a comprehensive ERP system specifically designed for construction and handcraft businesses. It streamlines business operations from customer management to accounting with an intuitive web interface, guided workflow, and secure authentication.
+
+## 🚀 Quick Start
+
+1. **Clone and install:**
+   ```bash
+   git clone <repo-url>
+   cd ERP-Projekt
+   pip install -r requirements.txt
+   python scripts/create_db.py
+   ```
+
+2. **Run locally:**
+   ```bash
+   uvicorn app.main:app --reload
+   ```
+
+3. **First setup:** Visit `http://localhost:8000/setup` to create your admin account
+
+## 📁 Project Structure
+
+```
+├── app/                     # Main application
+│   ├── models/             # Database models
+│   ├── routes/             # API routes
+│   ├── templates/          # HTML templates
+│   └── utils/              # Utilities & auth
+├── deployment/             # Production deployment
+│   ├── docker/            # Docker & docker-compose
+│   └── nginx/             # Nginx configuration
+├── docs/                  # Documentation
+├── scripts/               # Database & utility scripts
+├── static/                # CSS, images, assets
+└── tests/                 # Test files
+```
 
 ## Features
 
@@ -47,13 +81,13 @@ BuildFlow is a comprehensive ERP system specifically designed for construction a
 
 2. Create and activate the environment:  
    ```bash
-   conda env create -f environment.yml
+   conda env create -f docs/environment.yml
    conda activate erp_env
    ```
    
 3. Create data base:
     ```bash
-    python create_db.py
+    python scripts/create_db.py
     ```
     
 4. Start the server:
@@ -84,7 +118,7 @@ BuildFlow is a comprehensive ERP system specifically designed for construction a
     
 4. Create data base:
     ```bash
-    python create_db.py
+    python scripts/create_db.py
     ```
     
 5. Start the server:

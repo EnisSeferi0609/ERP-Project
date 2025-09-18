@@ -14,7 +14,7 @@ from app.utils.logging_config import setup_logging
 from app.routes import (
     kunde_route, auftrag_route, rechnung_route,
     unternehmensdaten_route, startseite_route,
-    auftrag_loeschen, buchungen, dashboard_route, health
+    auftrag_loeschen, buchungen, dashboard_route, health, auth_route
 )
 from config import config
 
@@ -63,6 +63,19 @@ templates.env.filters['from_json'] = from_json
 
 @app.get("/", response_class=HTMLResponse)
 def startseite(request: Request, db: Session = Depends(get_db)):
+    from app.utils.auth_middleware import check_setup_required
+    from fastapi.responses import RedirectResponse
+
+    # Check if setup is required
+    if check_setup_required(db):
+        return RedirectResponse(url="/setup", status_code=302)
+
+    # Check if user is logged in
+    from app.utils.auth_middleware import optional_auth
+    user = optional_auth(request, db)
+    if not user:
+        return RedirectResponse(url="/login", status_code=302)
+
     return templates.TemplateResponse(
         "startseite.html", {
             "request": request})
@@ -84,7 +97,11 @@ def serve_receipt_file(filename: str):
     return FileResponse(file_path)
 
 
+# Include authentication routes first (no auth required)
+app.include_router(auth_route.router)
 app.include_router(health.router)
+
+# Include protected routes
 app.include_router(dashboard_route.router)
 app.include_router(kunde_route.router)
 app.include_router(auftrag_route.router)

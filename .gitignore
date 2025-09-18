@@ -23,9 +23,20 @@ Thumbs.db
 *.pid
 *.sqlite-journal
 
-# Receipt uploads
-receipts/
-rechnungen/
+# Receipt uploads (customer data)
+receipts/*
+!receipts/.gitkeep
+rechnungen/*
+!rechnungen/.gitkeep
+
+# Production deployment files
+data/*
+!data/.gitkeep
+logs/*
+!logs/.gitkeep
+certbot/*
+!certbot/.gitkeep
+.env.production.local
 
 # Temporary files
 tmp/

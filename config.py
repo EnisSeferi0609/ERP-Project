@@ -14,7 +14,7 @@ class Config:
     ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
     # Database Configuration
-    DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./erp.db")
+    DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./data/erp.db" if os.getenv("ENVIRONMENT") == "production" else "sqlite:///./erp.db")
 
     # Application Settings
     DEBUG = os.getenv("DEBUG", "False").lower() == "true"
@@ -24,7 +24,7 @@ class Config:
     ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
     
     # PDF Generation
-    WKHTMLTOPDF_PATH = os.getenv("WKHTMLTOPDF_PATH", "/usr/local/bin/wkhtmltopdf")
+    WKHTMLTOPDF_PATH = os.getenv("WKHTMLTOPDF_PATH", "/usr/bin/wkhtmltopdf" if os.getenv("ENVIRONMENT") == "production" else "/usr/local/bin/wkhtmltopdf")
     
     # File Storage Paths
     BASE_DIR = Path(__file__).resolve().parent

@@ -1,3 +1,10 @@
+import sys
+from pathlib import Path
+
+# Add project root to Python path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
 from database.db import Base, engine, SessionLocal
 from app.models.kunde import Kunde  # noqa: F401
 from app.models.rechnung import Rechnung  # noqa: F401
@@ -7,6 +14,7 @@ from app.models.arbeit_komponente import ArbeitKomponente  # noqa: F401
 from app.models.unternehmensdaten import Unternehmensdaten  # noqa: F401
 from app.models.einnahme_ausgabe import EinnahmeAusgabe  # noqa: F401
 from app.models.eur_kategorie import EurKategorie
+from app.models.user import User  # noqa: F401
 
 from sqlalchemy.exc import IntegrityError
 
