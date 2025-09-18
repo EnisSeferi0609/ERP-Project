@@ -30,6 +30,7 @@ from config import config
 router = APIRouter()
 templates = create_templates()
 
+
 # Add JSON filter to Jinja2
 def from_json(value):
     if value:

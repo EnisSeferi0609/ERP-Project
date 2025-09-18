@@ -2,48 +2,73 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
+  <title>Rechnung</title>
   <style>
     @page {
       size: A4;
-      margin: 2cm;
+      margin: 2cm 1.5cm;
     }
 
-    /* Import the original working styles with minor adjustments for WeasyPrint */
     body {
-      font-family: Georgia, 'Times New Roman', serif;
-      font-size: 12pt;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 10pt;
       margin: 0;
       padding: 0;
+      line-height: 1.3;
+      color: #2c3e50;
     }
 
     header {
-      position: relative;
-      margin-bottom: 50px;
+      margin-bottom: 30px;
       border-bottom: 2px solid #1a2b45;
-      padding-bottom: 20px;
+      padding-bottom: 15px;
+      display: block;
+      overflow: hidden;
+    }
+
+    .header-content {
+      display: table;
+      width: 100%;
     }
 
     .logo-container {
-      position: absolute;
-      top: 0;
-      right: 0;
+      display: table-cell;
+      width: 120px;
+      vertical-align: top;
+      text-align: right;
+      padding-left: 20px;
     }
 
     .logo {
-      width: 120px;
+      width: 100px;
+      height: auto;
+      display: block;
     }
 
     .info-bereich {
+      display: table-cell;
+      vertical-align: top;
+      width: calc(100% - 120px);
+    }
+
+    .address-container {
       display: table;
       width: 100%;
-      border-spacing: 20px 0;
     }
 
     .absender, .empfaenger {
       display: table-cell;
-      width: 45%;
-      line-height: 1.5;
+      width: 50%;
       vertical-align: top;
+      line-height: 1.3;
+      padding-right: 10px;
+    }
+
+    .empfaenger {
+      border: 1px solid #ddd;
+      padding: 8px;
+      background-color: #f9f9f9;
+      margin-left: 10px;
     }
 
     .absender strong {
@@ -51,147 +76,166 @@
     }
 
     h1 {
-      font-size: 20pt;
+      font-size: 16pt;
       color: #1a2b45;
-      margin-bottom: 10px;
-      border-left: 6px solid #1a2b45;
-      padding-left: 10px;
+      margin: 20px 0 15px 0;
+      border-left: 4px solid #1a2b45;
+      padding-left: 8px;
+      clear: both;
     }
 
     h3 {
-      font-size: 14pt;
+      font-size: 11pt;
       color: #1a2b45;
-      margin-top: 30px;
-      margin-bottom: 10px;
-      border-left: 4px solid #1a2b45;
-      padding-left: 8px;
+      margin: 20px 0 10px 0;
+      border-left: 3px solid #1a2b45;
+      padding-left: 6px;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 10px;
-      table-layout: fixed;
+      margin: 10px 0;
+      font-size: 9pt;
+      table-layout: auto;
     }
 
     th, td {
-      padding: 8px 10px;
-      border: 1px solid #e0e0e0;
-      font-size: 11pt;
+      padding: 4px 6px;
+      border: 1px solid #ddd;
+      text-align: left;
+      vertical-align: top;
     }
 
     th {
-      background-color: #ecf0f1;
-      text-align: left;
+      background-color: #f5f5f5;
       font-weight: 600;
       color: #34495e;
     }
 
     tr:nth-child(even) {
-      background-color: #f9f9f9;
+      background-color: #fafafa;
     }
 
-    /* Fixed column widths for work table */
-    .work-table th:nth-child(1), .work-table td:nth-child(1) { width: 18%; } /* Datum */
-    .work-table th:nth-child(2), .work-table td:nth-child(2) { width: 15%; } /* Tätigkeit */
-    .work-table th:nth-child(3), .work-table td:nth-child(3) { width: 20%; } /* Beschreibung */
-    .work-table th:nth-child(4), .work-table td:nth-child(4) { width: 10%; } /* Menge */
-    .work-table th:nth-child(5), .work-table td:nth-child(5) { width: 10%; } /* Einheit */
-    .work-table th:nth-child(6), .work-table td:nth-child(6) { width: 12%; } /* Preis */
-    .work-table th:nth-child(7), .work-table td:nth-child(7) { width: 15%; } /* Gesamt */
+    /* Work table optimized column widths */
+    .work-table th:nth-child(1), .work-table td:nth-child(1) { width: 14%; }
+    .work-table th:nth-child(2), .work-table td:nth-child(2) { width: 13%; }
+    .work-table th:nth-child(3), .work-table td:nth-child(3) { width: 25%; }
+    .work-table th:nth-child(4), .work-table td:nth-child(4) { width: 8%; }
+    .work-table th:nth-child(5), .work-table td:nth-child(5) { width: 8%; }
+    .work-table th:nth-child(6), .work-table td:nth-child(6) { width: 16%; }
+    .work-table th:nth-child(7), .work-table td:nth-child(7) { width: 16%; }
 
-    /* Fixed column widths for material table */
-    .material-table th:nth-child(1), .material-table td:nth-child(1) { width: 35%; } /* Bezeichnung */
-    .material-table th:nth-child(2), .material-table td:nth-child(2) { width: 15%; } /* Anzahl */
-    .material-table th:nth-child(3), .material-table td:nth-child(3) { width: 15%; } /* Einheit */
-    .material-table th:nth-child(4), .material-table td:nth-child(4) { width: 17%; } /* Preis pro Einheit */
-    .material-table th:nth-child(5), .material-table td:nth-child(5) { width: 18%; } /* Gesamt */
+    /* Material table optimized column widths */
+    .material-table th:nth-child(1), .material-table td:nth-child(1) { width: 40%; }
+    .material-table th:nth-child(2), .material-table td:nth-child(2) { width: 10%; }
+    .material-table th:nth-child(3), .material-table td:nth-child(3) { width: 12%; }
+    .material-table th:nth-child(4), .material-table td:nth-child(4) { width: 19%; }
+    .material-table th:nth-child(5), .material-table td:nth-child(5) { width: 19%; }
 
-    /* Prevent line breaks in specific columns */
-    .work-table td:nth-child(4), /* Menge */
-    .work-table td:nth-child(5), /* Einheit */
-    .work-table td:nth-child(6), /* Preis */
-    .work-table td:nth-child(7), /* Gesamt */
-    .material-table td:nth-child(2), /* Anzahl */
-    .material-table td:nth-child(3), /* Einheit */
-    .material-table td:nth-child(4), /* Preis pro Einheit */
-    .material-table td:nth-child(5) { /* Gesamt */
+    /* Text wrapping controls */
+    .work-table td:nth-child(4),
+    .work-table td:nth-child(5),
+    .work-table td:nth-child(6),
+    .work-table td:nth-child(7),
+    .material-table td:nth-child(2),
+    .material-table td:nth-child(3),
+    .material-table td:nth-child(4),
+    .material-table td:nth-child(5) {
       white-space: nowrap;
+      text-align: right;
+      padding-right: 8px;
     }
 
-    /* Date column - allow manual breaks but prevent overflow */
-    .work-table td:nth-child(1) { /* Datum */
-      white-space: normal;
-      word-wrap: break-word;
-      overflow-wrap: break-word;
-      hyphens: none;
+    /* Header alignment for number columns */
+    .work-table th:nth-child(4),
+    .work-table th:nth-child(5),
+    .work-table th:nth-child(6),
+    .work-table th:nth-child(7),
+    .material-table th:nth-child(2),
+    .material-table th:nth-child(3),
+    .material-table th:nth-child(4),
+    .material-table th:nth-child(5) {
+      text-align: right;
+      padding-right: 8px;
     }
 
-    /* Allow text wrapping only for specific columns */
-    .work-table td:nth-child(2), /* Tätigkeit */
-    .work-table td:nth-child(3), /* Beschreibung */
-    .material-table td:nth-child(1) { /* Bezeichnung */
-      white-space: normal;
+    .work-table td:nth-child(1) {
+      white-space: nowrap;
+      font-size: 8pt;
+    }
+
+    .work-table td:nth-child(2),
+    .work-table td:nth-child(3),
+    .material-table td:nth-child(1) {
       word-wrap: break-word;
       overflow-wrap: break-word;
     }
 
     .summe-sektion {
-      margin-top: 15px;
-      margin-bottom: 20px;
-      font-size: 11pt;
+      margin: 10px 0;
+      font-size: 9pt;
       text-align: right;
       color: #34495e;
       background-color: #f8f9fa;
-      padding: 8px 15px;
+      padding: 6px 10px;
+      border-radius: 3px;
     }
 
     .gesamt {
-      margin-top: 30px;
+      margin-top: 20px;
       font-weight: bold;
-      font-size: 12pt;
+      font-size: 11pt;
       text-align: right;
       color: #2c3e50;
+      border-top: 2px solid #1a2b45;
+      padding-top: 10px;
     }
 
     .footer {
-      margin-top: 60px;
-      font-size: 10pt;
+      margin-top: 30px;
+      font-size: 8pt;
       color: #7f8c8d;
       border-top: 1px solid #bdc3c7;
-      padding-top: 15px;
-      line-height: 1.6;
+      padding-top: 10px;
+      line-height: 1.4;
     }
 
-    .nowrap-euro {
-      white-space: nowrap;
+    /* Print-specific adjustments */
+    @media print {
+      body { font-size: 9pt; }
+      table { font-size: 8pt; }
+      .footer { font-size: 7pt; }
     }
   </style>
 </head>
 <body>
 
 <header>
-  <div class="logo-container">
-    <img src="data:image/png;base64,{{ logo_base64 }}" alt="Logo Bodenleger" class="logo">
-  </div>
-
-  <div class="info-bereich">
-    <div class="absender">
-      <strong>{{ unternehmensdaten.unternehmen_name }}</strong><br>
-      {{ unternehmensdaten.unternehmen_adresse }}<br>
-      {{ unternehmensdaten.unternehmen_plz }} {{ unternehmensdaten.unternehmen_ort }}<br>
-      {{ unternehmensdaten.unternehmen_telefon }}<br>
-      Steuernummer: {{ unternehmensdaten.unternehmen_steuernummer }}
+  <div class="header-content">
+    <div class="info-bereich">
+      <div class="address-container">
+        <div class="absender">
+          <strong>{{ unternehmensdaten.unternehmen_name }}</strong><br>
+          {{ unternehmensdaten.unternehmen_adresse }}<br>
+          {{ unternehmensdaten.unternehmen_plz }} {{ unternehmensdaten.unternehmen_ort }}<br>
+          {{ unternehmensdaten.unternehmen_telefon }}<br>
+          Steuernummer: {{ unternehmensdaten.unternehmen_steuernummer }}
+        </div>
+        <div class="empfaenger">
+          <strong>Rechnungsempfänger:</strong><br>
+          {% if kunde.kundenart == "Privatkunde" %}
+            <strong>{{ kunde.kunde_vorname }} {{ kunde.kunde_nachname }}</strong><br>
+          {% elif kunde.kundenart == "Gewerbekunde" %}
+            <strong>{{ kunde.kunde_firmenname }}</strong><br>
+          {% endif %}
+          {{ kunde.kunde_rechnungsadresse }}<br>
+          {{ kunde.kunde_rechnung_plz }} {{ kunde.kunde_rechnung_ort }}
+        </div>
+      </div>
     </div>
-    <br>
-    <div class="empfaenger">
-      {% if kunde.kundenart == "Privatkunde" %}
-        <strong>{{ kunde.kunde_vorname }} {{ kunde.kunde_nachname }}</strong><br>
-      {% elif kunde.kundenart == "Gewerbekunde" %}
-        <strong>{{ kunde.kunde_firmenname }}</strong><br>
-      {% endif %}
-      {{ kunde.kunde_rechnungsadresse }}<br>
-      {{ kunde.kunde_rechnung_plz }} {{ kunde.kunde_rechnung_ort }}
+    <div class="logo-container">
+      <img src="data:image/png;base64,{{ logo_base64 }}" alt="Logo Bodenleger" class="logo">
     </div>
   </div>
 </header>
@@ -287,10 +331,18 @@
   <p>{{ unternehmensdaten.rechtliche_informationen }}</p>
   {% endif %}
   <p>
+    {% if unternehmensdaten.zahlungsinfo_name %}
     Zahlung an: {{ unternehmensdaten.zahlungsinfo_name }}<br>
+    {% endif %}
+    {% if unternehmensdaten.zahlungsinfo_bank_name %}
     Bank: {{ unternehmensdaten.zahlungsinfo_bank_name }}<br>
+    {% endif %}
+    {% if unternehmensdaten.zahlungsinfo_iban %}
     IBAN: {{ unternehmensdaten.zahlungsinfo_iban }}<br>
+    {% endif %}
+    {% if unternehmensdaten.zahlungsinfo_paypal %}
     PayPal: {{ unternehmensdaten.zahlungsinfo_paypal }}
+    {% endif %}
   </p>
 </div>
 
