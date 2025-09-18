@@ -14,6 +14,7 @@ import time
 import os
 import subprocess
 import tempfile
+from weasyprint import HTML
 
 from database.db import get_db
 from app.models.einnahme_ausgabe import EinnahmeAusgabe
@@ -711,50 +712,18 @@ def generate_eur_pdf(year: int, db: Session = Depends(get_db)):
         "monthly_data": monthly_data
     })
 
-    # Generate PDF using wkhtmltopdf
+    # Generate PDF using WeasyPrint
     try:
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False, encoding='utf-8') as html_file:
-            html_file.write(rendered_html)
-            html_file.flush()
+        # Generate PDF directly from HTML string
+        pdf_content = HTML(string=rendered_html).write_pdf()
 
-            with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as pdf_file:
-                # Use wkhtmltopdf to generate PDF
-                cmd = [
-                    config.WKHTMLTOPDF_PATH,
-                    '--page-size', 'A4',
-                    '--margin-top', '0.75in',
-                    '--margin-right', '0.75in',
-                    '--margin-bottom', '1.0in',
-                    '--margin-left', '0.75in',
-                    '--encoding', 'UTF-8',
-                    '--enable-local-file-access',
-                    html_file.name,
-                    pdf_file.name
-                ]
-
-                result = subprocess.run(cmd, capture_output=True, text=True)
-
-                if result.returncode != 0:
-                    return HTMLResponse(
-                        f"PDF-Generierung fehlgeschlagen: {result.stderr}",
-                        status_code=500
-                    )
-
-                # Read and return PDF
-                with open(pdf_file.name, 'rb') as f:
-                    pdf_content = f.read()
-
-                # Clean up temp files
-                os.unlink(html_file.name)
-                os.unlink(pdf_file.name)
-
-                return Response(
-                    content=pdf_content,
-                    media_type='application/pdf',
-                    headers={
-                        'Content-Disposition': f'attachment; filename="EÜR_{year}_{company_data.unternehmen_name.replace(" ", "_")}.pdf"'
-                    }
-                )
+        return Response(
+            content=pdf_content,
+            media_type='application/pdf',
+            headers={
+                'Content-Disposition': f'attachment; filename="EÜR_{year}_{company_data.unternehmen_name.replace(" ", "_")}.pdf"'
+            }
+        )
 
     except Exception as e:
         return HTMLResponse(f"Fehler bei der PDF-Generierung: {str(e)}", status_code=500)

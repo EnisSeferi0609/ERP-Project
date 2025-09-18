@@ -18,7 +18,7 @@ from datetime import date
 from app.models.eur_kategorie import EurKategorie
 
 
-import pdfkit
+from weasyprint import HTML
 import datetime
 import os
 import secrets
@@ -227,10 +227,9 @@ def rechnung_erstellen(
 
     # PDF-Datei erstellen (nach Rechnungs-ID benannt)
     pdf_path = config.INVOICES_DIR / f"Rechnung_{neue_rechnung.id}.pdf"
-    pdfkit_config = pdfkit.configuration(wkhtmltopdf=config.WKHTMLTOPDF_PATH)
 
     try:
-        pdfkit.from_string(rendered_html, str(pdf_path), configuration=pdfkit_config)
+        HTML(string=rendered_html).write_pdf(str(pdf_path))
     except Exception as e:
         db.rollback()
         return HTMLResponse(
