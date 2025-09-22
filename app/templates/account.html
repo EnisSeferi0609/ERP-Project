@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Konto{% endblock %}
+
+{% block content %}
+<h1>Konto</h1>
+
+{% if success_message %}
+<div class="success-message">{{ success_message }}</div>
+{% endif %}
+
+{% if error_message %}
+<div class="error-message">{{ error_message }}</div>
+{% endif %}
+
+<form action="/account/profile" method="post">
+    <h2>Profil bearbeiten</h2>
+
+    <label for="username">Benutzername</label>
+    <input type="text" name="username" value="{{ user.username if user else '' }}" required>
+
+    <label for="email">E-Mail</label>
+    <input type="email" name="email" value="{{ user.email if user else '' }}" required>
+
+    <button type="submit" class="btn btn-success">Speichern</button>
+</form>
+
+<form action="/account/password" method="post" onsubmit="return validatePasswordForm()">
+    <h2>Passwort ändern</h2>
+
+    <label for="current_password">Aktuelles Passwort</label>
+    <div class="password-input-wrapper">
+        <input type="password" name="current_password" id="current_password" required>
+        <button type="button" class="password-toggle" onclick="togglePassword('current_password')">Anzeigen</button>
+    </div>
+
+    <label for="new_password">Neues Passwort</label>
+    <div class="password-input-wrapper">
+        <input type="password" name="new_password" id="new_password" required>
+        <button type="button" class="password-toggle" onclick="togglePassword('new_password')">Anzeigen</button>
+    </div>
+    <small>Mindestens 6 Zeichen</small>
+
+    <label for="confirm_password">Passwort bestätigen</label>
+    <div class="password-input-wrapper">
+        <input type="password" name="confirm_password" id="confirm_password" required>
+        <button type="button" class="password-toggle" onclick="togglePassword('confirm_password')">Anzeigen</button>
+    </div>
+    <div id="password-error" style="color: red; font-size: 14px; margin-top: 5px; display: none;"></div>
+
+    <button type="submit" class="btn btn-success">Speichern</button>
+</form>
+
+{% if user %}
+<div class="info-section">
+    <h2>Kontoinformationen</h2>
+    <p><strong>Konto erstellt am:</strong> {{ user.created_at.strftime('%d.%m.%Y um %H:%M') }}</p>
+    {% if user.last_login %}
+    <p><strong>Letzte Anmeldung:</strong> {{ user.last_login.strftime('%d.%m.%Y um %H:%M') }}</p>
+    {% endif %}
+    <p><strong>Status:</strong> {{ 'Aktiv' if user.is_active else 'Inaktiv' }}</p>
+</div>
+{% endif %}
+
+<style>
+.password-input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.password-input-wrapper input {
+    width: 100%;
+    padding-right: 60px;
+    box-sizing: border-box;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 5px;
+    color: #666;
+}
+
+.password-toggle:hover {
+    color: #333;
+}
+</style>
+
+<script>
+function togglePassword(fieldId) {
+    const field = document.getElementById(fieldId);
+    const button = field.nextElementSibling;
+
+    if (field.type === 'password') {
+        field.type = 'text';
+        button.textContent = 'Verbergen';
+    } else {
+        field.type = 'password';
+        button.textContent = 'Anzeigen';
+    }
+}
+
+function validatePasswordForm() {
+    const newPassword = document.getElementById('new_password').value;
+    const confirmPassword = document.getElementById('confirm_password').value;
+    const errorDiv = document.getElementById('password-error');
+
+    // Clear previous error
+    errorDiv.style.display = 'none';
+    errorDiv.textContent = '';
+
+    // Check if passwords match
+    if (newPassword !== confirmPassword) {
+        errorDiv.textContent = 'Passwörter stimmen nicht überein';
+        errorDiv.style.display = 'block';
+        return false;
+    }
+
+    // Check password length
+    if (newPassword.length < 6) {
+        errorDiv.textContent = 'Neues Passwort muss mindestens 6 Zeichen lang sein';
+        errorDiv.style.display = 'block';
+        return false;
+    }
+
+    return true;
+}
+
+// Add real-time validation
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmPassword = document.getElementById('confirm_password');
+    const newPassword = document.getElementById('new_password');
+
+    function checkPasswordMatch() {
+        const errorDiv = document.getElementById('password-error');
+        if (confirmPassword.value && newPassword.value && confirmPassword.value !== newPassword.value) {
+            errorDiv.textContent = 'Passwörter stimmen nicht überein';
+            errorDiv.style.display = 'block';
+        } else {
+            errorDiv.style.display = 'none';
+        }
+    }
+
+    confirmPassword.addEventListener('input', checkPasswordMatch);
+    newPassword.addEventListener('input', checkPasswordMatch);
+});
+</script>
+
+{% endblock %}

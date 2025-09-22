@@ -133,7 +133,7 @@
                         </button>
                         <button onclick="window.location.href='/rechnung/{{ r.id }}/materialkosten'"
                             class="action-btn">Materialkosten</button>
-                        <button onclick="window.location.href='/rechnung/{{ r.id }}/download'"
+                        <button onclick="window.location.href='/rechnung/{{ r.id }}/download?t=' + Date.now()"
                             class="action-btn">Download</button>
                         <button onclick="deleteInvoice({{ r.id }})" class="btn btn-danger btn-sm">Löschen</button>
                     </div>

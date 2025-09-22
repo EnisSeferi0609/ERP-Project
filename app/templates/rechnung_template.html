@@ -242,7 +242,10 @@
 
 <h1>Rechnung</h1>
 <p><strong>Rechnungsdatum:</strong> {{ rechnung.rechnungsdatum.strftime("%d.%m.%Y") }}<br>
-<strong>Auftrag:</strong> {{ auftrag.beschreibung }}</p>
+<strong>Auftrag:</strong> {{ auftrag.beschreibung }}<br>
+{% if auftrag.kunde_leistungsadresse %}
+<strong>Leistungsadresse:</strong> {{ auftrag.kunde_leistungsadresse }}{% if auftrag.kunde_leistung_plz or auftrag.kunde_leistung_ort %}, {{ auftrag.kunde_leistung_plz }} {{ auftrag.kunde_leistung_ort }}{% endif %}
+{% endif %}</p>
 
 <h3>Arbeit</h3>
 <table class="work-table">

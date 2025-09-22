@@ -623,8 +623,8 @@ def euer_uebersicht(request: Request, view: str = "list", year: int = None, db: 
             monate[key]["ausgabe"] += e.betrag
 
     labels = sorted(monate.keys())
-    daten_einnahmen = [monate[m]["einnahme"] for m in labels]
-    daten_ausgaben = [monate[m]["ausgabe"] for m in labels]
+    daten_einnahmen = [float(monate[m]["einnahme"]) for m in labels]
+    daten_ausgaben = [float(monate[m]["ausgabe"]) for m in labels]
 
     return templates.TemplateResponse("euer_uebersicht.html", {
         "request": request,

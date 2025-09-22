@@ -47,10 +47,7 @@
                     <h3>Einstellungen</h3>
                     <a href="/unternehmensdaten"
                         class="{% if request.url.path == '/unternehmensdaten' %}active{% endif %}">Unternehmensdaten</a>
-                </div>
-
-                <div class="nav-section">
-                    <h3>Account</h3>
+                    <a href="/account" class="{% if request.url.path == '/account' %}active{% endif %}">Konto</a>
                     <a href="/logout" class="logout-link">Abmelden</a>
                 </div>
             </nav>

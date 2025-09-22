@@ -226,8 +226,17 @@ def rechnung_erstellen(
     # PDF-Ordner sicherstellen
     config.ensure_directories()
 
-    # PDF-Datei erstellen (nach Rechnungs-ID benannt)
-    pdf_path = config.INVOICES_DIR / f"Rechnung_{neue_rechnung.id}.pdf"
+    # Create customer name for filename (safe for filesystem)
+    if kunde.kundenart == "Privatkunde":
+        customer_name = f"{kunde.kunde_vorname}_{kunde.kunde_nachname}"
+    else:
+        customer_name = kunde.kunde_firmenname or "Unbekannt"
+
+    # Clean customer name for filename (remove special characters)
+    safe_customer_name = "".join(c for c in customer_name if c.isalnum() or c in ('_', '-')).strip()
+
+    # PDF-Datei erstellen (nach Rechnungs-ID und Kunde benannt)
+    pdf_path = config.INVOICES_DIR / f"Rechnung_{neue_rechnung.id}_{safe_customer_name}.pdf"
 
     try:
         HTML(string=rendered_html).write_pdf(str(pdf_path))
@@ -240,7 +249,7 @@ def rechnung_erstellen(
     # PDF ausliefern
     return FileResponse(
         path=pdf_path,
-        filename=f"Rechnung_{neue_rechnung.id}.pdf",
+        filename=f"Rechnung_{neue_rechnung.id}_{safe_customer_name}.pdf",
         media_type="application/pdf"
     )
 
@@ -588,14 +597,37 @@ def download_rechnung_pdf(rechnung_id: int, db: Session = Depends(get_db)):
     rechnung = db.query(Rechnung).filter(Rechnung.id == rechnung_id).first()
     if not rechnung:
         return HTMLResponse("Rechnung nicht gefunden", status_code=404)
-    
-    # Prüfe ob PDF-Datei existiert
-    pdf_filename = f"Rechnung_{rechnung_id}.pdf"
-    pdf_path = config.INVOICES_DIR / pdf_filename
-    
-    if not pdf_path.exists():
+
+    # Get customer information for filename
+    kunde = rechnung.kunde
+    if kunde.kundenart == "Privatkunde":
+        customer_name = f"{kunde.kunde_vorname}_{kunde.kunde_nachname}"
+    else:
+        customer_name = kunde.kunde_firmenname or "Unbekannt"
+
+    # Clean customer name for filename
+    safe_customer_name = "".join(c for c in customer_name if c.isalnum() or c in ('_', '-')).strip()
+
+    # Try new filename format first
+    new_pdf_filename = f"Rechnung_{rechnung_id}_{safe_customer_name}.pdf"
+    new_pdf_path = config.INVOICES_DIR / new_pdf_filename
+
+    # Fall back to old filename format if new doesn't exist
+    old_pdf_filename = f"Rechnung_{rechnung_id}.pdf"
+    old_pdf_path = config.INVOICES_DIR / old_pdf_filename
+
+    if new_pdf_path.exists():
+        pdf_path = new_pdf_path
+        pdf_filename = new_pdf_filename
+        print(f"DEBUG: Using NEW file: {pdf_path}")
+    elif old_pdf_path.exists():
+        pdf_path = old_pdf_path
+        pdf_filename = new_pdf_filename  # Use new filename for download even with old file
+        print(f"DEBUG: Using OLD file: {pdf_path}, serving as: {pdf_filename}")
+    else:
+        print(f"DEBUG: NO FILE FOUND - new: {new_pdf_path}, old: {old_pdf_path}")
         return HTMLResponse("PDF-Datei nicht gefunden", status_code=404)
-    
+
     return FileResponse(
         path=str(pdf_path),
         filename=pdf_filename,
@@ -643,14 +675,31 @@ def delete_rechnung(rechnung_id: int, db: Session = Depends(get_db)):
                 # Clear material cost data since invoice is being deleted
                 material.actual_cost = None
 
-        # Delete the invoice PDF file if it exists
-        pdf_filename = f"Rechnung_{rechnung_id}.pdf"
-        pdf_path = config.INVOICES_DIR / pdf_filename
-        if pdf_path.exists():
-            try:
-                pdf_path.unlink()
-            except Exception as e:
-                print(f"Warning: Could not delete PDF file {pdf_filename}: {str(e)}")
+        # Delete the invoice PDF file if it exists (try both old and new formats)
+        kunde = rechnung.kunde
+        if kunde.kundenart == "Privatkunde":
+            customer_name = f"{kunde.kunde_vorname}_{kunde.kunde_nachname}"
+        else:
+            customer_name = kunde.kunde_firmenname or "Unbekannt"
+
+        # Clean customer name for filename
+        safe_customer_name = "".join(c for c in customer_name if c.isalnum() or c in ('_', '-')).strip()
+
+        # Try to delete new filename format first
+        new_pdf_filename = f"Rechnung_{rechnung_id}_{safe_customer_name}.pdf"
+        new_pdf_path = config.INVOICES_DIR / new_pdf_filename
+
+        # Also try old filename format
+        old_pdf_filename = f"Rechnung_{rechnung_id}.pdf"
+        old_pdf_path = config.INVOICES_DIR / old_pdf_filename
+
+        for pdf_path, pdf_filename in [(new_pdf_path, new_pdf_filename), (old_pdf_path, old_pdf_filename)]:
+            if pdf_path.exists():
+                try:
+                    pdf_path.unlink()
+                    print(f"Deleted PDF file: {pdf_filename}")
+                except Exception as e:
+                    print(f"Warning: Could not delete PDF file {pdf_filename}: {str(e)}")
 
         # Delete the invoice from database
         db.delete(rechnung)

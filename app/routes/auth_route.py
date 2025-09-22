@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from database.db import get_db
-from app.utils.auth_utils import authenticate_user, create_session_token
+from app.utils.auth_utils import authenticate_user, create_session_token, get_current_user, verify_password, get_password_hash
 from pathlib import Path
 
 router = APIRouter()
@@ -43,7 +43,7 @@ def login_submit(
     token = create_session_token(user.id)
 
     # Create response with redirect
-    response = RedirectResponse(url="/dashboard", status_code=302)
+    response = RedirectResponse(url="/", status_code=302)
     response.set_cookie(
         key="session_token",
         value=token,
@@ -118,7 +118,7 @@ def setup_submit(
 
         # Auto-login after setup
         token = create_session_token(user.id)
-        response = RedirectResponse(url="/dashboard", status_code=302)
+        response = RedirectResponse(url="/", status_code=302)
         response.set_cookie(
             key="session_token",
             value=token,
@@ -136,3 +136,114 @@ def setup_submit(
                 "error_message": f"Fehler beim Erstellen des Benutzers: {str(e)}"
             }
         )
+
+
+@router.get("/account", response_class=HTMLResponse)
+def account_page(request: Request, db: Session = Depends(get_db)):
+    """Display account settings page."""
+    token = request.cookies.get("session_token")
+    if not token:
+        return RedirectResponse(url="/login", status_code=302)
+
+    user = get_current_user(db, token)
+    if not user:
+        return RedirectResponse(url="/login", status_code=302)
+
+    return templates.TemplateResponse("account.html", {
+        "request": request,
+        "user": user
+    })
+
+
+@router.post("/account/profile")
+def update_profile(
+    request: Request,
+    username: str = Form(...),
+    email: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    """Update user profile."""
+    token = request.cookies.get("session_token")
+    if not token:
+        return RedirectResponse(url="/login", status_code=302)
+
+    user = get_current_user(db, token)
+    if not user:
+        return RedirectResponse(url="/login", status_code=302)
+
+    try:
+        # Update user data
+        user.username = username
+        user.email = email
+        db.commit()
+
+        return templates.TemplateResponse("account.html", {
+            "request": request,
+            "user": user,
+            "success_message": "Profil erfolgreich aktualisiert"
+        })
+    except Exception as e:
+        return templates.TemplateResponse("account.html", {
+            "request": request,
+            "user": user,
+            "error_message": f"Fehler beim Speichern: {str(e)}"
+        })
+
+
+@router.post("/account/password")
+def change_password(
+    request: Request,
+    current_password: str = Form(...),
+    new_password: str = Form(...),
+    confirm_password: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    """Change user password."""
+    token = request.cookies.get("session_token")
+    if not token:
+        return RedirectResponse(url="/login", status_code=302)
+
+    user = get_current_user(db, token)
+    if not user:
+        return RedirectResponse(url="/login", status_code=302)
+
+    # Validate current password
+    if not verify_password(current_password, user.hashed_password):
+        return templates.TemplateResponse("account.html", {
+            "request": request,
+            "user": user,
+            "error_message": "Aktuelles Passwort ist falsch"
+        })
+
+    # Validate new password
+    if len(new_password) < 6:
+        return templates.TemplateResponse("account.html", {
+            "request": request,
+            "user": user,
+            "error_message": "Neues Passwort muss mindestens 6 Zeichen lang sein"
+        })
+
+    # Validate password confirmation
+    if new_password != confirm_password:
+        return templates.TemplateResponse("account.html", {
+            "request": request,
+            "user": user,
+            "error_message": "Passwörter stimmen nicht überein"
+        })
+
+    try:
+        # Update password
+        user.hashed_password = get_password_hash(new_password)
+        db.commit()
+
+        return templates.TemplateResponse("account.html", {
+            "request": request,
+            "user": user,
+            "success_message": "Passwort erfolgreich geändert"
+        })
+    except Exception as e:
+        return templates.TemplateResponse("account.html", {
+            "request": request,
+            "user": user,
+            "error_message": f"Fehler beim Ändern des Passworts: {str(e)}"
+        })
