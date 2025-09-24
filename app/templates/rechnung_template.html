@@ -1,4 +1,3 @@
-waju
 <!DOCTYPE html>
 <html lang="de">
 
@@ -334,15 +333,15 @@ waju
         <td>{{ k.arbeit }}</td>
         <td>{{ k.beschreibung or "-" }}</td>
         {% if k.berechnungsbasis == "stunden" %}
-        <td>{{ (k.anzahl_stunden or 0)|german_decimal(1) }}</td>
+        <td>{{ (k.anzahl_stunden or 0.0)|german_decimal(1) }}</td>
         <td>Stunden</td>
-        <td>{{ (k.stundenlohn or 0)|german_decimal }} €</td>
-        <td>{{ ((k.anzahl_stunden or 0) * (k.stundenlohn or 0))|german_decimal }} €</td>
+        <td>{{ (k.stundenlohn or 0.0)|german_decimal }} €</td>
+        <td>{{ ((k.anzahl_stunden or 0)|float * (k.stundenlohn or 0)|float)|german_decimal }} €</td>
         {% elif k.berechnungsbasis == "quadratmeter" %}
-        <td>{{ (k.anzahl_quadrat or 0)|german_decimal(1) }}</td>
+        <td>{{ (k.anzahl_quadrat or 0.0)|german_decimal(1) }}</td>
         <td>m²</td>
-        <td>{{ (k.preis_pro_quadrat or 0)|german_decimal }} €</td>
-        <td>{{ ((k.anzahl_quadrat or 0) * (k.preis_pro_quadrat or 0))|german_decimal }} €</td>
+        <td>{{ (k.preis_pro_quadrat or 0.0)|german_decimal }} €</td>
+        <td>{{ ((k.anzahl_quadrat or 0)|float * (k.preis_pro_quadrat or 0)|float)|german_decimal }} €</td>
         {% else %}
         <td>-</td>
         <td>-</td>
