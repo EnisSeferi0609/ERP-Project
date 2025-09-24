@@ -9,7 +9,7 @@ class EinnahmeAusgabe(Base):
     __tablename__ = "einnahmen_ausgaben"
 
     id = Column(Integer, primary_key=True)
-    datum = Column(Date, nullable=False)
+    datum = Column(Date, nullable=False, index=True)
     typ = Column(String, nullable=False)  # 'einnahme' oder 'ausgabe'
     betrag = Column(DECIMAL(12, 2), nullable=False)  # Precise currency amounts
     beschreibung = Column(String)
@@ -18,9 +18,10 @@ class EinnahmeAusgabe(Base):
     kategorie_id = Column(
         Integer,
         ForeignKey("eur_kategorie.id"),
-        nullable=False)
+        nullable=False,
+        index=True)
     kategorie = relationship("EurKategorie", back_populates="einnahmen_ausgaben")
 
-    rechnung_id = Column(Integer, ForeignKey("rechnung.id"), nullable=True)
+    rechnung_id = Column(Integer, ForeignKey("rechnung.id"), nullable=True, index=True)
 
     rechnung = relationship("Rechnung", back_populates="einnahmen_ausgaben")

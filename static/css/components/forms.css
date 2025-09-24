@@ -352,12 +352,3 @@ legend {
     display: none;
 }
 
-/* Manual Bookings Section */
-.manual-bookings-section {
-    margin-top: 2rem;
-    padding: 1.5rem;
-    background-color: var(--bg-secondary, #f8f9fa);
-    border-radius: var(--radius-md, 8px);
-    border: 1px solid var(--border-primary, #dee2e6);
-    box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.1));
-}

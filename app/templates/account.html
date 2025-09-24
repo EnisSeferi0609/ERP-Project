@@ -20,7 +20,7 @@
     <input type="text" name="username" value="{{ user.username if user else '' }}" required>
 
     <label for="email">E-Mail</label>
-    <input type="email" name="email" value="{{ user.email if user else '' }}" required>
+    <input type="text" name="email" value="{{ user.email if user else '' }}" required placeholder="beispiel@domain.de">
 
     <button type="submit" class="btn btn-success">Speichern</button>
 </form>

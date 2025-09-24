@@ -23,8 +23,8 @@
     <div class="cost-date-section">
         <h3>Wann sind die Materialkosten angefallen?</h3>
         <label for="cost_date">Datum der Materialkosten:</label>
-        <input type="date" id="cost_date" name="cost_date" required 
-               value="{{ rechnung.rechnungsdatum.strftime('%Y-%m-%d') if rechnung.rechnungsdatum else '' }}"
+        <input type="date" id="cost_date" name="cost_date" required
+               value="{% if existing_cost_date %}{{ existing_cost_date.strftime('%Y-%m-%d') }}{% elif rechnung.rechnungsdatum %}{{ rechnung.rechnungsdatum.strftime('%Y-%m-%d') }}{% endif %}"
                style="margin-left: 1rem;">
     </div>
     

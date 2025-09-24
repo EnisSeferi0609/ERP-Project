@@ -135,34 +135,6 @@
     border-color: #2563eb;
 }
 
-/* View Toggle Navigation */
-.view-toggle {
-    display: flex;
-    gap: 10px;
-    margin: 20px 0;
-}
-
-.view-toggle a {
-    padding: 8px 16px;
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 5px;
-    text-decoration: none;
-    color: #495057;
-    font-size: 0.9rem;
-    transition: all 0.2s;
-}
-
-.view-toggle a:hover {
-    background: #e9ecef;
-    color: #212529;
-}
-
-.view-toggle a.active {
-    background: #007bff;
-    color: white;
-    border-color: #007bff;
-}
 
 /* Sidebar Navigation Sections */
 .nav-section {
@@ -187,28 +159,6 @@
 
 /* Sidebar links are handled by main styles in style.css */
 
-/* General Navigation Links (for other nav areas) */
-.nav-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.nav-links a {
-    padding: 10px 15px;
-    background: var(--bg-primary, #fff);
-    border: 1px solid var(--border-primary, #dee2e6);
-    border-radius: 5px;
-    text-decoration: none;
-    color: var(--text-secondary, #495057);
-    transition: all 0.2s;
-}
-
-.nav-links a:hover {
-    background: var(--bg-secondary, #f8f9fa);
-    border-color: var(--color-primary, #007bff);
-    color: var(--color-primary, #007bff);
-}
 
 /* Mobile Navigation */
 @media (max-width: 768px) {

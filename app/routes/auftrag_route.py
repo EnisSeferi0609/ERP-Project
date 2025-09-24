@@ -11,9 +11,7 @@ from app.models.material_komponente import MaterialKomponente
 from app.models.eur_kategorie import EurKategorie
 from app.models.einnahme_ausgabe import EinnahmeAusgabe
 from app.utils.template_utils import create_templates
-from pathlib import Path
 import datetime
-import os
 from typing import List, Optional
 
 router = APIRouter()

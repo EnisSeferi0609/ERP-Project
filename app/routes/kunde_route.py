@@ -12,7 +12,6 @@ from database.db import get_db
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi import APIRouter, Request, Form, Depends, HTTPException
 from app.utils.template_utils import create_templates
-from app.utils.date_utils import parse_german_date
 
 
 router = APIRouter()
@@ -245,15 +244,33 @@ def kunde_loeschen(kunde_id: int, db: Session = Depends(get_db)):
             # Delete all EÜR entries for each invoice
             db.query(EinnahmeAusgabe).filter(EinnahmeAusgabe.rechnung_id == rechnung.id).delete()
 
-            # Delete invoice PDF file
+            # Delete invoice PDF file(s) - handle both old and new filename formats
             from config import config
-            pdf_filename = f"Rechnung_{rechnung.id}.pdf"
-            pdf_path = config.INVOICES_DIR / pdf_filename
-            if pdf_path.exists():
-                try:
-                    pdf_path.unlink()
-                except Exception as e:
-                    print(f"Warning: Could not delete PDF file {pdf_filename}: {str(e)}")
+            import re
+
+            # Create safe customer name for filename
+            if kunde.kundenart == "Privatkunde":
+                customer_name = f"{kunde.kunde_nachname}_{kunde.kunde_vorname}"
+            else:
+                customer_name = f"{kunde.ansprechpartner_nachname}_{kunde.ansprechpartner_vorname}"
+
+            # Remove special characters for filename
+            safe_customer_name = re.sub(r'[^a-zA-Z0-9_-]', '', customer_name)
+
+            # Try to delete both possible filename formats
+            possible_filenames = [
+                f"Rechnung_{rechnung.id}_{safe_customer_name}.pdf",  # New format
+                f"Rechnung_{rechnung.id}.pdf"  # Old format
+            ]
+
+            for pdf_filename in possible_filenames:
+                pdf_path = config.INVOICES_DIR / pdf_filename
+                if pdf_path.exists():
+                    try:
+                        pdf_path.unlink()
+                        print(f"Deleted PDF file: {pdf_filename}")
+                    except Exception as e:
+                        print(f"Warning: Could not delete PDF file {pdf_filename}: {str(e)}")
 
         # Delete material receipt files before deleting components
         materialien = db.query(MaterialKomponente).filter(

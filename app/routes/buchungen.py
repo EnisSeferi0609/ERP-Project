@@ -479,7 +479,7 @@ def rechnung_status_toggle(
         if rechnung.auftrag:
             # Separate Buchung für each material
             for mk in rechnung.auftrag.materialien:
-                material_betrag = mk.anzahl * mk.preis_pro_einheit
+                material_betrag = float(mk.anzahl or 1) * float(mk.preis_pro_einheit or 0)
                 if material_betrag > 0 and material_erloese_kategorie:
                     material_desc = f"Materialerlöse {mk.bezeichnung}" if mk.bezeichnung else "Materialerlöse"
                     
@@ -498,11 +498,11 @@ def rechnung_status_toggle(
             work_descriptions = []
             for ak in rechnung.auftrag.arbeit_komponenten:
                 if ak.berechnungsbasis == "stunden":
-                    arbeits_summe += (ak.anzahl_stunden or 0) * (ak.stundenlohn or 0)
+                    arbeits_summe += float(ak.anzahl_stunden or 0) * float(ak.stundenlohn or 0)
                     if ak.beschreibung:
                         work_descriptions.append(f"{ak.beschreibung} ({ak.anzahl_stunden}h)")
                 elif ak.berechnungsbasis == "quadratmeter":
-                    arbeits_summe += (ak.anzahl_quadrat or 0) * (ak.preis_pro_quadrat or 0)
+                    arbeits_summe += float(ak.anzahl_quadrat or 0) * float(ak.preis_pro_quadrat or 0)
                     if ak.beschreibung:
                         work_descriptions.append(f"{ak.beschreibung} ({ak.anzahl_quadrat}m²)")
                         

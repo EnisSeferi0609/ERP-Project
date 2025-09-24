@@ -164,12 +164,20 @@
     <label for="auftrag_id">Auftrag auswählen:</label>
     <select name="auftrag_id" id="auftrag_id" required onchange="updateDetailsButton()">
         <option value="">-- Bitte zuerst Kunden wählen --</option>
-        {% for auftrag in auftraege %}
-        <option value="{{ auftrag.id }}" data-kunde="{{ auftrag.kunde_id }}">
-            Auftrag #{{ auftrag.id }} – {{ auftrag.beschreibung }}
-        </option>
-        {% endfor %}
     </select>
+
+    <!-- Hidden data for JavaScript -->
+    <script id="auftraege-data" type="application/json">
+    [
+        {% for auftrag in auftraege %}
+        {
+            "id": {{ auftrag.id }},
+            "kunde_id": {{ auftrag.kunde_id }},
+            "beschreibung": "{{ auftrag.beschreibung | replace('"', '\\"') }}"
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ]
+    </script>
 
     <button type="button" id="auftragDetailsBtn" onclick="openSelectedAuftragDetails()" class="btn btn-primary" disabled style="margin-top: 0.5rem;">
         Auftrag Details
@@ -197,18 +205,6 @@
     </div>
 </div>
 
-<script>
-// Set today's date as default for invoice date
-document.addEventListener('DOMContentLoaded', function() {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    const todayString = `${year}-${month}-${day}`;
-    
-    document.getElementById('rechnungsdatum').value = todayString;
-});
-</script>
 
 <!-- BuildFlow Workflow Navigation -->
 <div class="workflow-navigation">
@@ -239,17 +235,53 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 <script>
+    // Store all auftrag data for filtering
+    let allAuftraege = [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set today's date as default for invoice date
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        const todayString = `${year}-${month}-${day}`;
+        document.getElementById('rechnungsdatum').value = todayString;
+
+        // Load auftrag data from JSON
+        const auftraegeScript = document.getElementById('auftraege-data');
+        if (auftraegeScript) {
+            try {
+                allAuftraege = JSON.parse(auftraegeScript.textContent);
+            } catch (e) {
+                console.error('Error parsing auftraege data:', e);
+            }
+        }
+    });
+
     function filterAuftraege() {
         const kundeSelect = document.getElementById("kunde_id");
         const auftragSelect = document.getElementById("auftrag_id");
-        const selectedKundeId = kundeSelect.value;
+        const selectedKundeId = parseInt(kundeSelect.value);
 
-        for (const option of auftragSelect.options) {
-            if (!option.dataset.kunde) continue; // erste Placeholder-Option
-            option.style.display = option.dataset.kunde === selectedKundeId ? "block" : "none";
+        // Clear all options
+        auftragSelect.innerHTML = '<option value="">-- Bitte zuerst Kunden wählen --</option>';
+
+        // Add matching options if customer is selected
+        if (selectedKundeId) {
+            auftragSelect.innerHTML = '<option value="">-- Auftrag auswählen --</option>';
+
+            const matchingAuftraege = allAuftraege.filter(auftrag => auftrag.kunde_id === selectedKundeId);
+
+            matchingAuftraege.forEach(auftrag => {
+                const option = document.createElement('option');
+                option.value = auftrag.id;
+                option.dataset.kunde = auftrag.kunde_id;
+                option.textContent = `Auftrag #${auftrag.id} – ${auftrag.beschreibung}`;
+                auftragSelect.appendChild(option);
+            });
         }
 
-        auftragSelect.value = ""; // Reset Auswahl
+        auftragSelect.value = ""; // Reset selection
         updateDetailsButton(); // Update details button state
     }
 

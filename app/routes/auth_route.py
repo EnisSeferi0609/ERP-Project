@@ -49,7 +49,8 @@ def login_submit(
         value=token,
         max_age=86400,  # 24 hours
         httponly=True,
-        secure=False  # Set to True in production with HTTPS
+        secure=True,  # Always use HTTPS for security
+        samesite='strict'  # CSRF protection
     )
     return response
 

@@ -9,7 +9,7 @@ class ArbeitKomponente(Base):
     __tablename__ = "arbeit_komponente"
 
     id = Column(Integer, primary_key=True)
-    auftrag_id = Column(Integer, ForeignKey("auftrag.id"), nullable=False)
+    auftrag_id = Column(Integer, ForeignKey("auftrag.id"), nullable=False, index=True)
 
     arbeit = Column(String)
     beschreibung = Column(Text)
@@ -20,7 +20,7 @@ class ArbeitKomponente(Base):
     anzahl_quadrat = Column(Integer)
     stundenlohn = Column(DECIMAL(10, 2))  # Precision: 10 digits, 2 decimal places
     preis_pro_quadrat = Column(DECIMAL(10, 2))  # Precision: 10 digits, 2 decimal places
-    kategorie_id = Column(Integer, ForeignKey("eur_kategorie.id"))
+    kategorie_id = Column(Integer, ForeignKey("eur_kategorie.id"), index=True)
 
     kategorie = relationship("EurKategorie", back_populates="arbeit_komponenten")
 

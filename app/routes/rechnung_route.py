@@ -179,11 +179,11 @@ def rechnung_erstellen(
     gesamt_arbeit = 0
     for k in komponenten:
         if k.berechnungsbasis == "stunden":
-            gesamt_arbeit += (k.anzahl_stunden or 0) * (k.stundenlohn or 0)
+            gesamt_arbeit += float(k.anzahl_stunden or 0) * float(k.stundenlohn or 0)
         elif k.berechnungsbasis == "quadratmeter":
-            gesamt_arbeit += (k.anzahl_quadrat or 0) * (k.preis_pro_quadrat or 0)
+            gesamt_arbeit += float(k.anzahl_quadrat or 0) * float(k.preis_pro_quadrat or 0)
     gesamt_material = sum(
-        (m.preis_pro_einheit or 0) * (m.anzahl or 1)
+        float(m.preis_pro_einheit or 0) * float(m.anzahl or 1)
         for m in materialien
     )
 
@@ -199,7 +199,7 @@ def rechnung_erstellen(
         rechtlicher_hinweis="Zahlbar ohne Abzug innerhalb von 14 Tagen.",
         rechnungssumme_arbeit=gesamt_arbeit,
         rechnungssumme_material=gesamt_material,
-        rechnungssumme_gesamt=gesamt_arbeit + gesamt_material
+        rechnungssumme_gesamt=float(gesamt_arbeit) + float(gesamt_material)
     )
     db.add(neue_rechnung)
     
@@ -304,16 +304,32 @@ def material_kosten_formular(rechnung_id: int, request: Request, db: Session = D
     ).filter(Rechnung.id == rechnung_id).first()
     if not rechnung:
         return HTMLResponse("Rechnung nicht gefunden", status_code=404)
-    
+
     # Get all materials for this invoice's order
     materialien = db.query(MaterialKomponente).filter(
         MaterialKomponente.auftrag_id == rechnung.auftrag_id
     ).all()
-    
+
+    # Check for existing material cost bookings to get the current date
+    materialkosten_kategorie = db.query(EurKategorie).filter_by(
+        name="Materialkosten", typ="ausgabe"
+    ).first()
+
+    existing_cost_date = None
+    if materialkosten_kategorie:
+        existing_booking = db.query(EinnahmeAusgabe).filter(
+            EinnahmeAusgabe.rechnung_id == rechnung_id,
+            EinnahmeAusgabe.typ == "ausgabe",
+            EinnahmeAusgabe.kategorie_id == materialkosten_kategorie.id
+        ).first()
+        if existing_booking:
+            existing_cost_date = existing_booking.datum
+
     return templates.TemplateResponse("material_kosten_form.html", {
         "request": request,
         "rechnung": rechnung,
-        "materialien": materialien
+        "materialien": materialien,
+        "existing_cost_date": existing_cost_date
     })
 
 
@@ -348,6 +364,7 @@ async def material_kosten_speichern(
     materialkosten_kategorie = db.query(EurKategorie).filter_by(
         name="Materialkosten", typ="ausgabe"
     ).first()
+
     
     # Process each material component
     materialien = db.query(MaterialKomponente).filter(
@@ -422,12 +439,12 @@ async def material_kosten_speichern(
             if saved_filenames:
                 material.receipt_path = ','.join(saved_filenames)
     
-    # Second pass: Check if any costs are provided
+    # Second pass: Check if any costs are provided OR if existing costs exist (for date updates)
     for material in materialien:
         actual_cost_key = f"actual_cost_{material.id}"
         actual_cost = form_data.get(actual_cost_key)
-        
-        if actual_cost and float(actual_cost) > 0:
+        # Check if new cost is provided OR if material already has an existing cost
+        if (actual_cost and float(actual_cost) > 0) or (material.actual_cost and material.actual_cost > 0):
             any_costs_provided = True
             break
     
@@ -439,7 +456,7 @@ async def material_kosten_speichern(
             EinnahmeAusgabe.typ == "ausgabe",
             EinnahmeAusgabe.kategorie_id == materialkosten_kategorie.id if materialkosten_kategorie else None
         ).all()
-        
+
         for booking in existing_expense_bookings:
             db.delete(booking)
         
@@ -448,6 +465,8 @@ async def material_kosten_speichern(
             actual_cost_key = f"actual_cost_{material.id}"
             actual_cost = form_data.get(actual_cost_key)
 
+            # Determine which cost to use: new cost if provided, otherwise existing cost
+            cost_to_use = None
             if actual_cost and actual_cost.strip():
                 # Validate material cost input
                 from app.utils.form_validation import FormValidator
@@ -458,26 +477,29 @@ async def material_kosten_speichern(
                     return HTMLResponse(f"Fehler: {error_msg}", status_code=400)
 
                 from decimal import Decimal
-                actual_cost_decimal = Decimal(actual_cost.replace(',', '.'))
-                if actual_cost_decimal > 0:
-                    total_expenses += actual_cost_decimal
+                cost_to_use = Decimal(actual_cost.replace(',', '.'))
+                # Update material component with new actual cost
+                material.actual_cost = cost_to_use
+            elif material.actual_cost and material.actual_cost > 0:
+                # Use existing cost (date-only update)
+                cost_to_use = material.actual_cost
 
-                # Update material component with actual cost
-                material.actual_cost = actual_cost_decimal
-                
+            if cost_to_use and cost_to_use > 0:
+                total_expenses += cost_to_use
+
                 # Create expense booking using the user-specified cost date
                 expense_booking = EinnahmeAusgabe(
                     datum=cost_date,
-                    betrag=actual_cost_decimal,  # Use Decimal for precise amounts
+                    betrag=cost_to_use,  # Use Decimal for precise amounts
                     typ="ausgabe",
                     kategorie_id=materialkosten_kategorie.id if materialkosten_kategorie else None,
                     beschreibung=f"Materialkosten {material.bezeichnung}",
                     rechnung_id=rechnung_id
                 )
                 db.add(expense_booking)
-    
+
     db.commit()
-    
+
     # Add a simple success message in the URL for debugging
     files_uploaded = sum(1 for material in materialien if material.receipt_path and ',' in material.receipt_path or material.receipt_path)
     return RedirectResponse(f"/rechnungsliste?upload_success=1&files={files_uploaded}", status_code=303)

@@ -160,6 +160,9 @@
             <th>ID</th>
             <th>Vorname</th>
             <th>Nachname</th>
+            <th>Adresse</th>
+            <th>PLZ</th>
+            <th>Ort</th>
             <th>Email</th>
             <th>Telefon</th>
             <th>Kundenart</th>
@@ -186,6 +189,9 @@
             {{ kunde.ansprechpartner_nachname }}
           {% endif %}
         </td>
+        <td>{{ kunde.kunde_rechnungsadresse or "-" }}</td>
+        <td>{{ kunde.kunde_rechnung_plz or "-" }}</td>
+        <td>{{ kunde.kunde_rechnung_ort or "-" }}</td>
         <td>{{ kunde.kunde_email }}</td>
         <td>{{ kunde.kunde_telefon }}</td>
         <td>{{ kunde.kundenart }}</td>
@@ -203,16 +209,16 @@
     <!-- Customer Notes Row -->
     {% if kunde.notizen %}
     <tr class="auftrag-row auftrag-{{ kunde.id }}" style="display: none;">
-        <td colspan="8" style="padding-left: 2rem; color: #666; background-color: #f8f9fa; font-style: italic;">
+        <td colspan="11" style="padding-left: 2rem; color: #666; background-color: #f8f9fa; font-style: italic;">
             <strong>Notizen:</strong> {{ kunde.notizen }}
         </td>
         <td style="background-color: #f8f9fa;"></td>
     </tr>
     {% endif %}
-    
+
     {% for auftrag in kunde.auftraege %}
     <tr class="auftrag-row auftrag-{{ kunde.id }}" style="display: none;">
-        <td colspan="8" style="padding-left: 2rem; color: #555;">
+        <td colspan="11" style="padding-left: 2rem; color: #555;">
             Auftrag #{{ auftrag.id }} – {{ auftrag.beschreibung or "keine Beschreibung" }}
             (Start: {{ auftrag.auftrag_start or "-" }}, Status: {{ auftrag.invoice_status }})
         </td>

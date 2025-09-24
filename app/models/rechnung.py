@@ -15,21 +15,21 @@ class Rechnung(Base):
 
     id = Column(Integer, primary_key=True)
 
-    kunde_id = Column(Integer, ForeignKey("kunde.id"), nullable=False)
-    auftrag_id = Column(Integer, ForeignKey("auftrag.id"), nullable=False)
+    kunde_id = Column(Integer, ForeignKey("kunde.id"), nullable=False, index=True)
+    auftrag_id = Column(Integer, ForeignKey("auftrag.id"), nullable=False, index=True)
     unternehmensdaten_id = Column(
         Integer,
         ForeignKey("unternehmensdaten.id"),
         nullable=False)
 
-    rechnungsdatum = Column(Date)
+    rechnungsdatum = Column(Date, index=True)
     faelligkeit = Column(Date)
     rechtlicher_hinweis = Column(Text)
     rechnungssumme_arbeit = Column(DECIMAL(12, 2))  # Higher precision for totals
     rechnungssumme_material = Column(DECIMAL(12, 2))  # Higher precision for totals
     rechnungssumme_gesamt = Column(DECIMAL(12, 2))  # Higher precision for totals
     bezahlt = Column(Boolean, default=False)
-    payment_date = Column(Date, nullable=True)
+    payment_date = Column(Date, nullable=True, index=True)
 
     kunde = relationship("Kunde", back_populates="rechnungen")
     auftrag = relationship("Auftrag", back_populates="rechnungen")

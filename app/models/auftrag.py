@@ -15,7 +15,7 @@ class Auftrag(Base):
 
     id = Column(Integer, primary_key=True)
 
-    kunde_id = Column(Integer, ForeignKey("kunde.id"), nullable=False)
+    kunde_id = Column(Integer, ForeignKey("kunde.id"), nullable=False, index=True)
 
     status = Column(String)
     auftrag_start = Column(Date)

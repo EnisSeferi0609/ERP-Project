@@ -2,13 +2,22 @@
 
 BuildFlow is a comprehensive ERP system specifically designed for construction and handcraft businesses. It streamlines business operations from customer management to accounting with an intuitive web interface, guided workflow, and secure authentication.
 
-## 🚀 Quick Start
+## Quick Start
 
 1. **Clone and install:**
    ```bash
    git clone <repo-url>
    cd ERP-Projekt
+
+   # Create conda environment (recommended)
+   conda create -n erp_env python=3.11
+   conda activate erp_env
+   conda install -c conda-forge weasyprint
    pip install -r requirements.txt
+
+   # OR use pip only (may require system dependencies)
+   # pip install -r requirements.txt
+
    python scripts/create_db.py
    ```
 
@@ -19,7 +28,7 @@ BuildFlow is a comprehensive ERP system specifically designed for construction a
 
 3. **First setup:** Visit `http://localhost:8000/setup` to create your admin account
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 ├── app/                     # Main application
@@ -75,11 +84,35 @@ BuildFlow is a comprehensive ERP system specifically designed for construction a
 - **Production**: Error handling, environment configuration
 
 ## Local Setup
+
+### System Dependencies
+
+Before installing Python dependencies, you need to install system libraries required by WeasyPrint for PDF generation:
+
+**macOS (using Homebrew):**
+```bash
+brew install pango glib cairo gdk-pixbuf libffi
+```
+
+**Ubuntu/Debian:**
+```bash
+sudo apt-get install libpango-1.0-0 libharfbuzz0b libpangoft2-1.0-0
+```
+
+**CentOS/RHEL/Fedora:**
+```bash
+sudo yum install pango-devel cairo-devel
+# or for newer versions:
+sudo dnf install pango-devel cairo-devel
+```
+
 ### With Conda (recommended)
 
 1. Clone the repository
 
-2. Create and activate the environment:  
+2. Install system dependencies (see above)
+
+3. Create and activate the environment:  
    ```bash
    conda env create -f docs/environment.yml
    conda activate erp_env
@@ -104,29 +137,31 @@ BuildFlow is a comprehensive ERP system specifically designed for construction a
 
 1. Clone the repository
 
-2. Create and activate the environment:  
+2. Install system dependencies (see above)
+
+3. Create and activate the environment:  
    ```bash
    python -m venv venv
    source venv/bin/activate       # on Linux/macOS  
    venv\Scripts\activate        # on Windows
    ```
 
-3. Install dependencies
+4. Install dependencies
     ```bash
     pip install -r requirements.txt
     ```
     
-4. Create data base:
+5. Create data base:
     ```bash
     python scripts/create_db.py
     ```
     
-5. Start the server:
+6. Start the server:
     ```bash
     uvicorn app.main:app --reload
     ```
     
-6. Open in your browser:
+7. Open in your browser:
    ```bash
    http://127.0.0.1:8000
    ```

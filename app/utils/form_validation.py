@@ -13,14 +13,16 @@ class FormValidator:
 
     @staticmethod
     def validate_email(email: str) -> Tuple[bool, str]:
-        """Validate email format (optional field)."""
+        """Validate email format (optional field) with international character support."""
         if not email or not email.strip():
             return True, ""  # Email is optional
 
         email = email.strip()
-        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        # Updated regex to support international characters including umlauts
+        # \w includes unicode letters, numbers, and underscores
+        email_pattern = r'^[\w._%+-]+@[\w.-]+\.[a-zA-Z]{2,}$'
 
-        if not re.match(email_pattern, email):
+        if not re.match(email_pattern, email, re.UNICODE):
             return False, "Ungültige E-Mail-Adresse"
 
         if len(email) > 255:
@@ -83,14 +85,20 @@ class FormValidator:
 
     @staticmethod
     def validate_plz(plz: str) -> Tuple[bool, str]:
-        """Validate German postal code."""
+        """Validate postal code for Germany, Austria, and Switzerland."""
         if not plz or not plz.strip():
             return False, "Postleitzahl ist erforderlich"
 
-        if not re.match(r'^\d{5}$', plz.strip()):
-            return False, "Postleitzahl muss 5 Ziffern haben"
-
-        return True, ""
+        plz = plz.strip()
+        # German postal codes: 5 digits (10115-99998)
+        # Austrian postal codes: 4 digits (1010-9992)
+        # Swiss postal codes: 4 digits (1000-9658)
+        if re.match(r'^\d{5}$', plz):  # German format
+            return True, ""
+        elif re.match(r'^\d{4}$', plz):  # Austrian/Swiss format
+            return True, ""
+        else:
+            return False, "Postleitzahl muss 4-5 Ziffern haben (Deutschland: 5, Österreich/Schweiz: 4)"
 
     @staticmethod
     def validate_date(date_str: str, field_name: str, allow_future: bool = True) -> Tuple[bool, str]:
@@ -121,7 +129,7 @@ def validate_customer_form(form_data: dict) -> List[str]:
 
     # Customer type validation
     kundenart = form_data.get('kundenart', '')
-    if kundenart not in ['Privatkunde', 'Geschäftskunde']:
+    if kundenart not in ['Privatkunde', 'Gewerbekunde']:
         errors.append("Kundenart muss ausgewählt werden")
 
     if kundenart == 'Privatkunde':
@@ -136,7 +144,7 @@ def validate_customer_form(form_data: dict) -> List[str]:
         if not is_valid:
             errors.append(error)
 
-    elif kundenart == 'Geschäftskunde':
+    elif kundenart == 'Gewerbekunde':
         # Validate business customer fields
         is_valid, error = FormValidator.validate_required_text(
             form_data.get('kunde_firmenname', ''), "Firmenname", 200)

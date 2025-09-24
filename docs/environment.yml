@@ -9,17 +9,17 @@ dependencies:
     - fastapi==0.115.12
     - uvicorn==0.34.2
     - SQLAlchemy==2.0.40
-    - aiosqlite==0.21.0
-    - pydantic==2.11.4
-    - pydantic_core==2.33.2
     - python-multipart==0.0.20
     - starlette==0.46.2
     - jinja2==3.1.6
-    - pdfkit==1.0.0
-    - weasyprint==65.1
-    - requests==2.32.3
+    - weasyprint==66.0
     - python-dateutil==2.9.0.post0
     - python-dotenv==1.0.0
     - pytest==8.3.3
     - pytest-asyncio==0.25.0
-    - httpx==0.28.1
+    - passlib==1.7.4
+    - bcrypt==4.2.1
+    - itsdangerous==2.2.0
+    - eralchemy==1.5.0
+    - pygraphviz==1.14
+    - graphviz==0.21
