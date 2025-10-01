@@ -76,7 +76,7 @@ BuildFlow is a comprehensive ERP system specifically designed for construction a
 - **Backend**: Python with FastAPI framework
 - **Database**: SQLite with SQLAlchemy ORM
 - **Frontend**: HTML/CSS with Jinja2 templating
-- **PDF Generation**: wkhtmltopdf for invoices and reports
+- **PDF Generation**: WeasyPrint for invoices and reports
 - **File Handling**: Receipt uploads and document management
 - **Architecture**: Component-based CSS structure with modular design
 - **Testing**: pytest with automated test suite
@@ -186,6 +186,6 @@ curl http://127.0.0.1:8000/health
 
 - **API Documentation**: Generate with `cd doc && make html` (requires Sphinx)
 - **Database Schema**: View with `sqlite3 erp.db ".schema"`
-- **ER Diagram**: `er_diagram.pdf`
+- **ER Diagram**: `docs/er_diagram.pdf`
 - **API Health Check**: `/health` endpoint
 - **Logs**: Check `logs/buildflow.log` for application logs
