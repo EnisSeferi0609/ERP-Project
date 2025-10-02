@@ -10,7 +10,7 @@ Try out the live application at **[erp-buildflow.de](https://erp-buildflow.de)**
 - Username: `SeferiBodenleger`
 - Password: `produktionpasswort123`
 
-![BuildFlow Dashboard](static/startseite.png)
+![BuildFlow Dashboard](./static/startseite.png)
 
 ## Quick Start
 
