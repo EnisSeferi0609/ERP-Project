@@ -2,6 +2,16 @@
 
 BuildFlow is a comprehensive ERP system specifically designed for construction and handcraft businesses. It streamlines business operations from customer management to accounting with an intuitive web interface, guided workflow, and secure authentication.
 
+## Live Demo
+
+Try out the live application at **[erp-buildflow.de](https://erp-buildflow.de)**
+
+**Login credentials:**
+- Username: `SeferiBodenleger`
+- Password: `produktionpasswort123`
+
+![BuildFlow Dashboard](static/startseite.png)
+
 ## Quick Start
 
 1. **Clone and install:**
