@@ -299,7 +299,8 @@
   </header>
 
   <h1>Rechnung</h1>
-  <p><strong>Rechnungsdatum:</strong> {{ rechnung.rechnungsdatum.strftime("%d.%m.%Y") }}<br>
+  <p><strong>Rechnungsnummer:</strong> {{ rechnung.id + 100 }}<br>
+    <strong>Rechnungsdatum:</strong> {{ rechnung.rechnungsdatum.strftime("%d.%m.%Y") }}<br>
     <strong>Auftrag:</strong> {{ auftrag.beschreibung }}
   </p>
 
