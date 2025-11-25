@@ -5,6 +5,7 @@ BuildFlow is a comprehensive ERP system specifically designed for construction a
 ## Live Demo
 
 Try out the live application at **[test.erp-buildflow.de](https://test.erp-buildflow.de)**
+TEMPORARILY NO ACCESS. WORKING ON FIXES.
 
 **Login credentials:**
 - Username: `SeferiBodenlegerTest`
